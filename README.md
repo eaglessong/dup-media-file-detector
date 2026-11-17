@@ -75,3 +75,28 @@ owner authority. See [first-scan design](docs/design/first-scan.md),
 and [contribution checks](CONTRIBUTING.md).
 
 For a new feature: `python3 scripts/forge.py new-feature my-feature`.
+
+## Local code review
+
+The `/code_review` skill adapts Cowork's specialist reviewers, Devil's Advocate pass,
+and evidence-grounded synthesis to this project. In a skill-enabled coding agent:
+
+```text
+/code_review
+/code_review 12
+/code_review full review
+```
+
+With no argument it reviews staged/unstaged changes and relevant untracked files.
+It also accepts a branch, GitHub PR URL, or patch file. Reports go to the gitignored
+`.agent-local/reviews/` folder. This is a review-only command: it does not fix code,
+execute tests, publish comments, push, or merge. Full reviews use parallel reviewers
+when supported/permitted, or explicitly labelled sequential role passes otherwise.
+If the command is not discovered, ask the agent to follow
+`.agents/skills/code_review/SKILL.md`. Client skill discovery may require reopening
+the repository/session. The underscore in `code_review` intentionally matches the
+requested command name; it differs from the skill-creator's hyphen naming convention.
+
+See the [review roles](docs/code-review/roles.md) and
+[evidence/report contract](docs/code-review/report.md). During forge, this supplies
+ASSAY; the implementing agent then handles fixes and verification separately.

@@ -16,6 +16,8 @@ REQUIRED = (
     "docs/templates/evidence.md", "docs/templates/adr.md", "docs/design/first-scan.md",
     ".agents/skills/forge/SKILL.md", ".claude/skills/forge/SKILL.md",
     ".github/workflows/framework.yml", ".github/PULL_REQUEST_TEMPLATE.md",
+    ".agents/skills/code_review/SKILL.md", ".claude/skills/code_review/SKILL.md",
+    "docs/code-review/roles.md", "docs/code-review/report.md",
 )
 
 
@@ -63,10 +65,11 @@ def check(root: Path) -> list[str]:
     for name in REQUIRED:
         if not (root / name).is_file():
             errors.append(f"Missing required file: {name}")
-    a = root / ".agents/skills/forge/SKILL.md"
-    b = root / ".claude/skills/forge/SKILL.md"
-    if a.is_file() and b.is_file() and a.read_bytes() != b.read_bytes():
-        errors.append("Forge skill entry points must be identical.")
+    for skill in ("forge", "code_review"):
+        a = root / f".agents/skills/{skill}/SKILL.md"
+        b = root / f".claude/skills/{skill}/SKILL.md"
+        if a.is_file() and b.is_file() and a.read_bytes() != b.read_bytes():
+            errors.append(f"{skill} skill entry points must be identical.")
     for folder in sorted((root / "work-items").iterdir()):
         if not folder.is_dir():
             continue

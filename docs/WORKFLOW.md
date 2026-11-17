@@ -73,6 +73,12 @@ require a reproducible workload and measurements; inferred scale stays an assump
 
 ## 5. ASSAY — challenge
 
+Use `/code_review` (or ask the agent to follow `.agents/skills/code_review/SKILL.md`)
+for the specialist review and Devil's Advocate synthesis. This invocation is review-only:
+return to forge afterward to implement fixes and rerun affected checks. It does not
+replace TEMPER or grant authority to post, push, or merge. Quick review is only for
+small non-semantic changes; use Full for application and framework behavior changes.
+
 Review the final diff from correctness, usability, file safety/privacy, scale, and test
 realism perspectives. Ask: can this test pass while the feature is broken; does it
 exercise the actual entry point; can a scan escape its root or race a file change; are
