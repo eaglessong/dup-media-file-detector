@@ -1,67 +1,77 @@
 # dup-media-file-detector
 
-An artifact-driven project for finding duplicate media files. Application features are
-not implemented yet. Describe what you want; a coding agent turns the brief into a
-design, implementation, tests, and a reviewable pull request.
+A read-only Python CLI that inventories exact binary duplicates among media files
+under one local folder, including nested folders. Original names and bytes are preserved.
+No uploads, moves, deletion, or approximate similarity matching.
 
-## Start without writing code
-
-1. Open this repository in Codex or Claude Code. The agent reads `AGENTS.md` or `CLAUDE.md`.
-2. Edit [`docs/PRODUCT.md`](docs/PRODUCT.md): describe your users, media collection,
-   desired experience, and constraints in ordinary language. Unknowns can stay open.
-3. Tell the agent:
-
-   > Follow the forge workflow. Create feature `first-scan` from docs/PRODUCT.md and
-   > docs/design/first-scan.md. Explore first, ask about consequential unknowns,
-   > then implement, test, review, and open a PR. Do not merge it.
-
-   You may ask the agent to write the design from your brief, or author it yourself.
-   [`docs/design/first-scan.md`](docs/design/first-scan.md) is a proposed starting point,
-   not a decision that you have already made.
-4. Review the agent's plain-language PR summary, demo instructions, decisions, test
-   evidence, and limitations. Request revisions in ordinary language. Merge when ready.
-
-For subsequent features, ask the agent to run:
+Requires Python 3.11+ with SQLite on Linux/POSIX. No external dependencies or install
+step: copy/clone this repository onto the NAS and run from its directory. Synology
+hardware has not been tested; check `python3 --version` first. All ancestors of the
+selected root must be real directories, without symbolic links. Root paths containing
+`..` are rejected; supply a direct path.
 
 ```sh
-python3 scripts/forge.py new-feature my-feature
+python3 -m dup_media /volume1/media > /volume1/inventories/media.json
+# Override the default media-extension selection (no leading dots):
+python3 -m dup_media /volume1/media --extensions jpg,jpeg,png,mp4,mov,mp3,flac > /volume1/inventories/media.json
 ```
 
-Then edit `work-items/my-feature/brief.md`, or explain the feature in chat and ask the
-agent to fill it in. Track progress in `work-items/my-feature/status.json` and the
-adjacent evidence file. You never need to maintain that bookkeeping yourself.
+Create the output directory first and keep output **outside the scanned root**. Shell
+redirection creates/truncates the output before the scanner runs. The scanner itself
+only reads originals; OS access timestamps can change as a consequence of reads.
 
-## What is included
+Default extensions (case-insensitive, based on names; no media decoding):
+`jpg jpeg png gif bmp tif tiff webp heic heif avif raw cr2 cr3 nef arw dng mp4 m4v mov
+avi mkv mpg mpeg webm wmv mts m2ts 3gp mp3 m4a aac flac wav ogg opus wma aiff aif`.
+Empty matching files are included. Symbolic links and special files are skipped.
+Non-UTF-8 filenames produce an incomplete inventory with an escaped diagnostic name.
 
-- A portable [six-phase workflow](docs/WORKFLOW.md), with design and ADR templates.
-- `/forge` for compatible skill-enabled agents in `.agents/skills/forge/` and
-  `.claude/skills/forge/`. If slash commands are unavailable, say “follow the forge
-  workflow”; the same instructions work through `AGENTS.md`.
-- GitHub feature/bug forms, a PR template, and a starter framework CI check.
-- A Python 3.11+ standard-library scaffolder and framework validator; no API key or
-  dependency installation is needed for these tools.
+JSON contains `schema_version`, `complete`, `groups`, and `errors`. Each group contains
+`size_bytes`, `total_bytes` (logical bytes across all paths), and `files` with root-relative
+`path` and `storage_id`. Equal storage IDs identify hard-linked paths and are meaningful
+only on the scanned filesystem; total bytes do not represent reclaimable disk space.
+Paths are JSON-escaped; normal output/errors omit the root's absolute path. Relative
+names can still be private: treat your inventory accordingly.
 
-This adapts the phases and evidence discipline of Cowork's forge process. It is an
-independent starter: no internal services, credentials, telemetry, proprietary code,
-or organization-specific automation are required. The workflow guides an agent you
-run; it does not provision an autonomous hosted agent or spend an API budget.
+Exit codes: 0 complete, 1 incomplete (inspect errors), 2 invalid invocation/root or fatal
+I/O failure, 130 interrupted. Discard output after cancellation/fatal errors. Detected
+changes and unreadable files prevent a complete result. Scan a quiet tree or filesystem
+snapshot: a live scan cannot guarantee a point-in-time view. Future operations must
+revalidate files; this inventory never authorizes deletion.
 
-## Verification
+The scanner uses a disk-backed temporary SQLite index, sequential 1 MiB reads, size
+filtering, SHA-256 candidate hashing, and full byte comparison. Allow scratch disk space
+proportional to file count and path length. System temporary storage must be outside
+the selected root. There is no progress display or resume support in this version.
+
+## Small disposable demo
+
+Run this from the repository. It creates only temporary synthetic fixtures, scans
+them through the real CLI, prints one duplicate group, and cleans up afterward.
 
 ```sh
-python3 scripts/forge.py check
-python3 -m unittest discover -s tests -v
+python3 - <<'PY'
+from pathlib import Path
+import subprocess, sys, tempfile
+with tempfile.TemporaryDirectory() as folder:
+    root = Path(folder).resolve()
+    (root / 'nested').mkdir()
+    (root / 'one.jpg').write_bytes(b'synthetic media bytes')
+    (root / 'nested' / 'two.jpg').write_bytes(b'synthetic media bytes')
+    (root / 'different.jpg').write_bytes(b'other bytes')
+    subprocess.run([sys.executable, '-m', 'dup_media', str(root)], check=True)
+PY
 ```
 
-CI initially validates the framework only. The first implementation PR must add and
-run application format/lint/build checks as applicable, integration tests, and an
-end-to-end test through the real user entry point. Framework checks alone never prove
-application correctness. Python is tooling here; the application language, packaging,
-UI, and supported platforms are still design decisions.
+The `.jpg` fixtures test binary equality and extension selection, not image decoding.
 
-## Media safety
+## Artifact-driven development
 
-Detection is read-only by default. Exact byte equality and perceptual similarity are
-different results. Any future delete/move capability needs its own design, explicit
-user intent, preview, and recovery strategy. Never use your personal media library as
-a disposable test fixture.
+Describe intended behavior in [PRODUCT](docs/PRODUCT.md) or a feature brief. An agent
+follows [the forge workflow](docs/WORKFLOW.md), resolves consequential questions,
+authors the design, implements, tests, reviews, and delivers a PR. Do not merge without
+owner authority. See [first-scan design](docs/design/first-scan.md),
+[decisions](docs/decisions/001-first-scan.md), [evidence](work-items/first-scan/evidence.md),
+and [contribution checks](CONTRIBUTING.md).
+
+For a new feature: `python3 scripts/forge.py new-feature my-feature`.

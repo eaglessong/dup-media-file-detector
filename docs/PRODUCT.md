@@ -5,7 +5,8 @@
 ## Goal
 
 Help a person identify duplicate media files in selected local folders while keeping
-original files safe. Develop features from human-authored artifacts with agent execution.
+original files safe. Create an inventory of the duplicated files and use the inventory for future operations, for example move the duplicated files to another location.
+Develop features from human-authored artifacts with agent execution.
 
 ## Confirmed by the owner
 
@@ -20,20 +21,26 @@ original files safe. Develop features from human-authored artifacts with agent e
 
 ## Please describe in ordinary language
 
-- Who will use this, and what is frustrating about their current process?
-- Which OS, media types, and storage locations matter first?
-- How many files, roughly how much data, and what scan time is acceptable?
-- Would you prefer a CLI, desktop UI, or local web UI?
-- Should visually similar or transcoded media count as duplicates?
-- What output would make the first version useful?
+The utility will be used by the owner of Synology NAS, which offers a Linux-like command line interface.
+The files are all stored under a folder with cascading subfolders of a Linux-like file system.
+The number of files could be large and the total size could be hundreds of gigabytes. There is no restriction of file scan time.
+The utility should be a CLI that can run under a Linux-like shell environment.
+The definition of duplicate is that the binary content of two files are exactly yhe same.
+The first version should just create an inventiry of all duplicated files under a folder, without changing any of those files.
 
 ## Decisions to settle during the first SURVEY
 
-Application language and distribution; first supported OS; user entry point; media
-selection rules; symlink policy; result format; scan limits; exact-only first scope.
+The utility should be written in Python.
 
 ## Success
 
 Each accepted feature has numbered acceptance criteria, a design with attributed
 decisions, executable behavioral tests, a working demonstration, and review evidence.
 The owner can request changes through prose and artifacts without editing application code.
+
+## First-scan SURVEY outcome (2026-11-17)
+
+Owner selected extension-based media filtering, JSON with root-relative paths, group
+sizes and errors, and skipping symbolic links while listing hard-linked paths with
+shared storage identified. See [attributed decisions](decisions/001-first-scan.md)
+and [implementation design](design/first-scan.md). This feature remains read-only.
