@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature": "first-scan",
   "kind": "application",
-  "phase": "stamp",
+  "phase": "complete",
   "design": "docs/design/first-scan.md",
   "blockers": [],
   "verification": [

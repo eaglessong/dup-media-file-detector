@@ -1,6 +1,6 @@
 # First read-only duplicate scan
 
-**Status:** Designed after SURVEY, ready for implementation
+**Status:** Implemented, verified and self-reviewed; ready for owner PR review
 
 ## Current state and requirements
 

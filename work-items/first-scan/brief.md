@@ -1,6 +1,6 @@
 # First read-only duplicate scan
 
-**Status:** SURVEY resolved; implementation authorized
+**Status:** Implemented and verified; ready for owner PR review
 
 A Synology NAS owner needs a Python CLI to inventory exact binary duplicates under
 one folder and its nested subfolders, potentially hundreds of GB, without modifying

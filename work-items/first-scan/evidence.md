@@ -94,7 +94,16 @@ SQL binding, diagnostic privacy, test assertions, and real module subprocess exe
 
 ## Delivery
 
-Branch: codex/first-scan. GitHub PR/CI follow-up pending at STAMP.
+Branch: codex/first-scan. PR: https://github.com/eaglessong/dup-media-file-detector/pull/1
+
+Implementation commit c441e93: `gh pr checks 1` exited 0; framework and application
+(Python 3.11/3.13) checks all passed. Application run 44042132615 and framework run
+44042132277. Inspected application logs: 15 integration tests and 4 E2E tests pass
+on Linux, including the locally skipped filename fixture and actual permissions.
+`gh pr view 1 --json ...comments,reviews` and PR inline-comments API: no comments,
+reviews, or inline findings at delivery inspection. PR is mergeable and remains open.
+Final documentation/status commit will rerun the same checks; final head results are
+checked before handoff. No merge or release performed.
 Initial sandboxed `gh auth status` reported invalid tokens; authenticated network-enabled
 check succeeded. Default Git credential fetch failed (repository not found); per-command
 GitHub CLI credential helper fetched main successfully. `git rev-list --left-right
