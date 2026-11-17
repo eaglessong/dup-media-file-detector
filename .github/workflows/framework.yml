@@ -1,0 +1,21 @@
+name: Framework checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  framework:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate development artifacts
+        run: python3 scripts/forge.py check
+      - name: Test framework tooling
+        run: python3 -m unittest discover -s tests -v

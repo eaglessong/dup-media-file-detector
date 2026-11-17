@@ -1,0 +1,16 @@
+name: Bug report
+description: Report observed and expected behavior
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: What happened and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction and environment
+      description: Include version, OS, steps, and a synthetic example. Omit private paths and media.
+    validations:
+      required: true

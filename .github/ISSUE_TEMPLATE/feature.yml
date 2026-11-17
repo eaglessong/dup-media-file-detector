@@ -1,0 +1,22 @@
+name: Feature from a brief
+description: Describe behavior for an agent to design and build
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What do you want to accomplish?
+      description: Explain the user and problem in ordinary language.
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples and acceptance
+      description: Describe input, expected output, and how you would know it works.
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints and design artifacts
+      description: Link a design or add platform, scale, privacy, safety, and scope constraints.
