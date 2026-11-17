@@ -2,13 +2,62 @@
   "schema_version": 1,
   "feature": "first-scan",
   "kind": "application",
-  "phase": "prospect",
+  "phase": "stamp",
   "design": "docs/design/first-scan.md",
   "blockers": [],
-  "verification": [],
+  "verification": [
+    {
+      "scope": "framework",
+      "command": "python3 scripts/forge.py check",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "framework",
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "application",
+      "command": "python3 -m compileall -q dup_media",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "application",
+      "command": "python3 -m dup_media --help",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "application",
+      "command": "python3 -m unittest discover -s tests -p test_application.py -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "integration",
+      "command": "python3 -m unittest discover -s tests/integration -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "e2e",
+      "command": "python3 -m unittest discover -s tests/e2e -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "application",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "outcome": "passed"
+    }
+  ],
   "review": {
-    "mode": "pending",
-    "evidence": "",
+    "mode": "self-review",
+    "evidence": "work-items/first-scan/evidence.md",
     "unresolved_blocking_findings": []
   }
 }

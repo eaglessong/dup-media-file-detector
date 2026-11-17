@@ -1,30 +1,14 @@
 # First read-only duplicate scan
 
-**Status:** Draft — proposed first feature
+**Status:** SURVEY resolved; implementation authorized
 
-## Problem and intended user
+A Synology NAS owner needs a Python CLI to inventory exact binary duplicates under
+one folder and its nested subfolders, potentially hundreds of GB, without modifying
+originals. Scan time is unrestricted. Future operations may consume the inventory;
+this feature performs no moves or deletions.
 
-A person wants to find duplicate files in a local media collection without risking
-the originals. Confirm the user's preferred interface and platform before building.
-
-## Desired behavior with examples
-
-Proposed: given two selected folders containing two identical media files and one
-different file, report exactly one duplicate group and leave all three files unchanged.
-Report read failures clearly. Exact equality and perceptual similarity are distinct.
-
-## Acceptance criteria
-
-Proposed requirements R1–R5 and the verification matrix are in
-`docs/design/first-scan.md`; confirm them during SURVEY.
-
-## Constraints and non-goals
-
-Proposed: local, read-only, no uploads, no automatic deletion/moves, exact duplicates
-first. These are agent suggestions, not product-owner decisions.
-
-## Open questions
-
-Resolve `docs/PRODUCT.md`: OS, UI, language/distribution, media types, expected scale,
-link handling, result format, and duplicate-proof policy. Then revise the design before
-implementation. No application feature has been implemented or verified yet.
+USER selected media-extension filtering, JSON with relative paths/group sizes/errors,
+and skipping symlinks while including hard-linked paths with shared storage identified.
+Requirements R1–R5 and acceptance mapping: [design](../../docs/design/first-scan.md).
+Implementation defaults and actual USER quotes: [ADR](../../docs/decisions/001-first-scan.md).
+No open consequential product questions remain.

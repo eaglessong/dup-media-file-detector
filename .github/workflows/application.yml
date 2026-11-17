@@ -1,0 +1,29 @@
+name: Application checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Application syntax and CLI contract
+        run: |
+          python3 -m compileall -q dup_media
+          python3 -m dup_media --help
+          python3 -m unittest discover -s tests -p test_application.py -v
+      - name: Filesystem integration
+        run: python3 -m unittest discover -s tests/integration -v
+      - name: Shipped entry-point E2E
+        run: python3 -m unittest discover -s tests/e2e -v
