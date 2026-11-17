@@ -79,6 +79,13 @@ class ForgeTests(unittest.TestCase):
                 self.status(**update)
                 self.assertTrue(forge.check(self.root))
 
+    def test_review_skill_is_required_and_mirrored(self):
+        skill = self.root / ".claude/skills/code_review/SKILL.md"
+        skill.write_text("divergent review instructions")
+        self.assertIn("code_review skill entry points must be identical.", forge.check(self.root))
+        skill.unlink()
+        self.assertIn("Missing required file: .claude/skills/code_review/SKILL.md", forge.check(self.root))
+
     def test_missing_artifact_and_divergent_skills(self):
         (self.root / "AGENTS.md").unlink()
         (self.root / ".claude/skills/forge/SKILL.md").write_text("different")

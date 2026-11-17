@@ -27,6 +27,8 @@ Record assumptions as AGENT decisions; never attribute them to the user.
 - Add actual application checks to CI in the first implementation PR. Do not claim
   framework validation is an application test, or fabricate successful command results.
 - Perform adversarial review after tests, resolve findings, and rerun affected checks.
+  `/code_review` provides the review-only role/challenge/synthesis process; during forge
+  use it for ASSAY, then return to forge to fix findings and rerun affected checks.
   If supported and authorized, use an independent reviewer; otherwise do an explicit
   second review pass and label it self-review. Never claim independence falsely.
 - Open a PR when GitHub is available and the task authorizes delivery. Include a short
@@ -38,6 +40,7 @@ Record assumptions as AGENT decisions; never attribute them to the user.
 ## Framework maintenance
 
 Run `python3 scripts/forge.py check` and
-`python3 -m unittest discover -s tests -v` after changing the framework. Keep the two
-forge skill entry points identical. Use only Python's standard library for framework
-tooling unless a design justifies a new dependency. No application stack is selected yet.
+`python3 -m unittest discover -s tests -v` after changing the framework. Keep matching
+forge and code_review skill entry points identical across agent integrations. Use only Python's standard library
+for framework tooling unless a design justifies a new dependency. The application uses
+Python 3.11+ with SQLite and POSIX filesystem APIs; see CONTRIBUTING.md.
