@@ -174,7 +174,7 @@ See [sweep protocol](docs/patrol/sweep.md). Shared materials stay under docs/.
 ## Relocate duplicate media
 
 Relocation is an explicit mode. Ordinary `python3 -m dup_media ROOT` remains read-only.
-The initial relocation adapter supports **64-bit Linux ext4** with effective root
+The strict Linux relocation adapter supports **64-bit Linux ext4** with effective root
 and CHOWN, DAC_OVERRIDE, FOWNER and SYS_ADMIN capabilities. It refuses unsupported
 filesystems/platforms and metadata; this does not certify Synology/btrfs support.
 Run first on disposable fixtures, then preview your intended selection:
@@ -202,8 +202,8 @@ sudo python3 -m dup_media --move-duplicates SOURCE --destination DEST \
   --journal /separate/location/new-operation --exclusive-access
 ```
 
-Each duplicate is copied, compared byte-for-byte, checked for required metadata, and
-published without replacement before its matching source path is removed. Mode, owner,
+Each duplicate is copied, compared byte-for-byte, checked for its platform policy, and
+published without replacement before its matching source path is removed. On Linux, mode, owner,
 group, exact mtime and `user.*` attributes are preserved and verified. ACLs, other xattr
 namespaces and unsupported inode flags cause rejection. New inode/creation time,
 ctime/link topology and read-atime effects are exceptions. Free destination capacity
@@ -222,3 +222,23 @@ inspect `items` states (`planned`, `copying`, `staged_verified`, `destination_ve
 between a filesystem action and journal commit is ambiguous. Never delete based only
 on an old journal; do not blindly rerun with the same journal or overwrite prior targets.
 There is no automatic resume/undo, source-directory pruning or deletion-only command.
+
+
+### macOS relocation (APFS)
+
+On 64-bit macOS, use normal user permissions (no sudo). Source, destination and journal
+must be on local APFS. The same move flags apply:
+
+```sh
+python3 -m dup_media --move-duplicates /absolute/source --destination /absolute/archive --dry-run
+python3 -m dup_media --move-duplicates /absolute/source --destination /absolute/archive --journal /absolute/operations/new-run --exclusive-access
+```
+
+The `macos-data-only` policy preserves exact main-stream bytes and rejects resource
+forks on any duplicate-group participant. Permissions, ownership, timestamps, ACLs,
+Finder tags and other xattrs are **not preserved**. New files are created mode0600;
+inherited ACLs may apply. Flagged files are rejected. Scan-only mode stays read-only.
+Use canonical paths without symlink ancestors; `/private/tmp` rather than `/tmp`.
+JSONL header identifies the metadata policy. Linux retains strict metadata requirements.
+Keep exclusive control of source/destination/journal and their ancestors throughout execution.
+No automatic recovery: inspect the external journal after interrupted/partial operations.

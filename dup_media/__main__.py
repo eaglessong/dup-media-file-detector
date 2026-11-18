@@ -17,7 +17,7 @@ def main():
     parser = argparse.ArgumentParser(description='Read-only exact media duplicate inventory; JSON to stdout. Store output outside ROOT.')
     parser.add_argument('root')
     parser.add_argument('--extensions', type=extensions, default=DEFAULT_EXTENSIONS)
-    parser.add_argument('--move-duplicates', action='store_true', help='Explicitly relocate exact duplicate paths; Linux capabilities required.')
+    parser.add_argument('--move-duplicates', action='store_true', help='Explicitly relocate exact duplicate paths; Linux strict metadata or macOS APFS data-only policy.')
     parser.add_argument('--destination', help='Separate destination root, outside the source tree.')
     parser.add_argument('--dry-run', action='store_true', help='Plan relocation without changing either tree.')
     parser.add_argument('--journal', help='New operation directory outside both trees; parent must exist.')

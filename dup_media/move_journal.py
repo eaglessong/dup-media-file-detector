@@ -2,6 +2,7 @@
 import json
 import os
 import sqlite3
+import sys
 
 from .move_fs import Location, MoveError, identity
 
@@ -12,12 +13,21 @@ class Journal:
         fd = parent.open()
         self.db = None
         self.fd = None
+        self.location = None
         try:
             # mkdir is exclusive: never reuse an old/late-created operation directory.
             os.mkdir(os.path.basename(path), 0o700, dir_fd=fd)
             os.fsync(fd)
-            self.fd = Location(path).open()
-            self.db = sqlite3.connect(f'/proc/self/fd/{self.fd}/journal.sqlite')
+            self.location = Location(path)
+            self.fd = self.location.open()
+            db_path = (os.path.join(path, 'journal.sqlite') if sys.platform == 'darwin'
+                       else f'/proc/self/fd/{self.fd}/journal.sqlite')
+            self.db = sqlite3.connect(db_path)
+            self.check_location()
+            if sys.platform == 'darwin':
+                self.db.execute('PRAGMA fullfsync=ON')
+                if self.db.execute('PRAGMA fullfsync').fetchone()[0] != 1:
+                    raise MoveError('journal_sync_unsupported')
             self.db.executescript('''
                 PRAGMA synchronous=FULL;
                 CREATE TABLE roots(kind TEXT,dev TEXT,ino TEXT);
@@ -41,16 +51,28 @@ class Journal:
         finally:
             os.close(fd)
 
+    def check_location(self):
+        fd = self.location.open()
+        try:
+            if identity(fd) != identity(self.fd):
+                raise MoveError('journal_changed')
+        finally:
+            os.close(fd)
+
     def state(self, path, state, stage=None, info=None, error=None):
         dev, ino = (None, None) if info is None else map(str, info)
+        self.check_location()
         self.db.execute('UPDATE items SET state=?,stage=?,dev=?,ino=?,error=? WHERE path=?',
                         (state, stage, dev, ino, error, path))
         self.db.commit()
+        self.check_location()
         os.fsync(self.fd)
 
     def error(self, path, code):
+        self.check_location()
         self.db.execute('UPDATE items SET error=? WHERE path=?', (code, path))
         self.db.commit()
+        self.check_location()
         os.fsync(self.fd)
 
     def close(self):

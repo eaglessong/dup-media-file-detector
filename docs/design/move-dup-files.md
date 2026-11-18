@@ -337,3 +337,12 @@ explicitly queried and unsupported values rejected. Tests cover a substantial so
 and observed tree nonmutation, not direct physical-spill observation. Independent-agent
 source challenge found no remaining grounded blocker; no human review or power-loss
 certification is implied. PR#8 remains unmerged.
+
+
+## macOS extension (2026-11-18)
+
+The platform restrictions and strict metadata statements above describe the initial
+Linux delivery. [macOS design](macos-relocation.md) and [ADR-004](../decisions/004-macos-relocation.md)
+supersede those restrictions only for 64-bit macOS APFS: ordinary-user data-stream-only
+relocation with resource-fork rejection; other metadata may be omitted by USER choice.
+Linux preservation remains strict. Shared safety and journal requirements still apply.

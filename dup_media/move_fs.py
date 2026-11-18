@@ -103,6 +103,8 @@ def overlap(a, b):
 
 
 def runtime():
+    if sys.platform == 'darwin' and ctypes.sizeof(ctypes.c_void_p) == 8:
+        return
     if not sys.platform.startswith('linux') or ctypes.sizeof(ctypes.c_void_p) != 8 or os.geteuid() != 0:
         raise MoveError('unsupported_metadata_runtime')
     with open('/proc/self/status', encoding='ascii') as stream:
@@ -215,3 +217,17 @@ def apply_metadata(fd, expected):
     os.utime(fd, ns=(os.fstat(fd).st_atime_ns, expected['mtime']))
     if metadata(fd) != expected:
         raise MoveError('metadata_verification_failed')
+
+
+def sync_file(fd):
+    os.fsync(fd)
+
+
+def metadata_policy():
+    return 'macos-data-only' if sys.platform == 'darwin' else 'linux-strict'
+
+
+# Isolate Darwin contracts; retain strict Linux implementations unchanged above.
+if sys.platform == 'darwin':
+    from .move_darwin import (filesystem, mounts, scratch_outside, attrs, metadata,
+                              apply_metadata, sync_file)

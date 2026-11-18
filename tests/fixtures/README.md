@@ -30,6 +30,11 @@ failures are explicitly injected and checked against surviving bytes, not called
 disk-full or power-loss evidence. Signal tests launch the shipped main/argparse in a
 subprocess and patch only a deterministic observation checkpoint to send real SIGINT/
 SIGKILL; ordinary cross-volume E2E uses the actual `-m dup_media` entry point unpatched.
-Linux CI requires privileges and ext4 plus distinct-device `/dev/shm` tmpfs. The bounded
+Linux CI requires privileges and ext4 plus distinct-device a second loop-mounted ext4 filesystem. The bounded
 probe generates10,000 files of16 bytes (5,000 exact pairs) and a separate16-MiB pair;
 no private media, decoder or downloaded samples. Results are not NAS throughput claims.
+
+
+macOS relocation fixtures are original literal synthetic bytes, not decoded media.
+Native libc creates disposable resource forks and arbitrary metadata attributes; APFS
+image fixtures contain only generated test data and are detached after testing.

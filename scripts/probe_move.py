@@ -3,6 +3,7 @@ import io
 import json
 from pathlib import Path
 import resource
+import sys
 import tempfile
 import time
 from unittest.mock import patch
@@ -39,7 +40,7 @@ def main():
         assert code == 0
         measurements.update(files=10000, source_bytes=160000, phase='dry_run',
                             seconds=round(time.monotonic()-start, 3),
-                            peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+                            peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // (1024 if sys.platform == 'darwin' else 1))
         print(json.dumps(measurements))
     with tempfile.TemporaryDirectory() as t:
         base = Path(t).resolve()
@@ -55,7 +56,7 @@ def main():
         assert (base / 'dest/b.jpg').stat().st_size == 16*1024**2
         print(json.dumps(dict(phase='transfer', moved_bytes=16*1024**2,
                               seconds=round(time.monotonic()-start,3),
-                              peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)))
+                              peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // (1024 if sys.platform == 'darwin' else 1))))
 
 
 if __name__ == '__main__':

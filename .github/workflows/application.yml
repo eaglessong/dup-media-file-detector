@@ -43,3 +43,29 @@ jobs:
         run: |
           python_path="$(command -v python3)"
           sudo "$python_path" -m scripts.probe_move
+
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        python: ['3.11', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Native macOS application and filesystem checks
+        run: |
+          python3 -m compileall -q dup_media
+          python3 -m unittest discover -s tests -p test_application.py -v
+          python3 -m unittest discover -s tests/integration -v
+      - name: Native APFS entry-point and cross-volume tests
+        run: |
+          image="$RUNNER_TEMP/dup-media-cross.sparseimage"
+          cross_root="$RUNNER_TEMP/dup-media-cross"
+          hdiutil create -size 128m -fs APFS -volname DupMediaSynthetic -type SPARSE -o "$image"
+          hdiutil attach -nobrowse -mountpoint "$cross_root" "$image"
+          trap 'hdiutil detach "$cross_root"' EXIT
+          REQUIRE_MAC_MOVE_TESTS=1 MOVE_CROSS_ROOT="$cross_root" python3 -m unittest discover -s tests/integration -p 'test_macos*' -v
+          REQUIRE_MAC_MOVE_TESTS=1 MOVE_CROSS_ROOT="$cross_root" python3 -m unittest discover -s tests/e2e -v

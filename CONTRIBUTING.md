@@ -61,3 +61,11 @@ A Python3.13 CI step runs `sudo python3 -m scripts.probe_move` for bounded 10,00
 planning and 16-MiB transfer measurements. macOS explicitly skips privileged tests;
 this is not evidence that relocation works there. Do not remove strict metadata gates
 to make an unsupported platform pass. ACL/trusted-xattr/flags probes are real fixtures.
+
+
+macOS relocation uses dedicated native APFS tests in test_macos_relocate*.py, under
+ordinary user permissions. Linux metadata tests remain Linux-only. macOS CI attaches a
+disposable APFS image and sets REQUIRE_MAC_MOVE_TESTS=1 plus MOVE_CROSS_ROOT; cross-device
+E2E asserts distinct device IDs. Without that fixture local cross-device tests explicitly
+skip. Native resource forks/xattrs use libc because Python may omit os xattr functions.
+Full-sync tests exercise Darwin file flush requests; no hardware power-loss claim.

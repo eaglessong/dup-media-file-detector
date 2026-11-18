@@ -245,3 +245,9 @@ disk-full certification, no NAS/btrfs/macOS relocation support, logical not recl
 byte counts, unsupported metadata refusal. Status mode independent means separate-agent
 review only, not human-independent approval. Feature commits and evidence preserved on
 codex/move-dup-files; final handoff reports actual PR/head/check state.
+
+
+### macOS extension
+User subsequently authorized macOS support with metadata relaxation and resource-fork
+rejection. See work-items/macos-relocation/evidence.md and ADR-004 for this separate
+work item extending PR8. Earlier Linux evidence remains historical at its cited revision.

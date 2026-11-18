@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+import sys
 import unittest
 
 from dup_media.move_fs import runtime, MoveError
@@ -34,6 +35,8 @@ def tree(root):
 
 class MoveFixture(unittest.TestCase):
     def setUp(self):
+        if not sys.platform.startswith('linux'):
+            self.skipTest('strict Linux adapter fixture')
         try:
             runtime()
         except MoveError:

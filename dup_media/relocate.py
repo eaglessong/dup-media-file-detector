@@ -10,7 +10,7 @@ from contextlib import contextmanager
 
 from .scan import Scan, DIR_FLAGS, CHUNK, signature
 from .move_fs import (Location, MoveError, absolute, overlap, runtime, filesystem,
-                      mounts, scratch_outside, attrs, metadata, apply_metadata, identity)
+                      mounts, scratch_outside, attrs, metadata, apply_metadata, identity, sync_file, metadata_policy)
 from .move_journal import Journal
 
 
@@ -225,12 +225,13 @@ class Relocation:
                         if not equal_streams(source, target) or not equal_streams(kept, target):
                             raise MoveError('copy_verification_failed', path)
                     apply_metadata(fd, expected)
-                    os.fsync(fd)
+                    sync_file(fd)
                     journal.state(path, 'staged_verified', stage=stage, info=stage_id)
                     checkpoint('staged_verified', path)
                     # No replace: FileExistsError leaves the victim and prior target intact.
                     os.link(stage, name, src_dir_fd=parent, dst_dir_fd=parent, follow_symlinks=False)
                     os.fsync(parent)
+                    sync_file(fd)  # Flush publication before source-removal authority.
                     checkpoint('published', path)
                     final = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=parent)
                     try:
@@ -305,7 +306,8 @@ class Relocation:
         mounts([self.source, self.destination])
         if self.journal_path:
             mounts([self.source, self.destination, Location(self.journal_path)])
-        emit(output, schema_version=1, type='header', operation='move_duplicates', dry_run=dry_run)
+        emit(output, schema_version=1, type='header', operation='move_duplicates', dry_run=dry_run,
+             metadata_policy=metadata_policy())
         moved = byte_count = count = errors = 0
         current = '.'
         journal = None
@@ -332,6 +334,10 @@ class Relocation:
                     if scan.db.execute('SELECT 1 FROM dirs WHERE dev=? AND ino=?', (str(dev), str(ino))).fetchone():
                         raise MoveError('root_alias')
                 filesystem(scan.root_fd)
+                if metadata_policy() == 'macos-data-only' and scan.db.execute(
+                        'SELECT 1 FROM dirs WHERE dev<>? LIMIT 1',
+                        (str(os.fstat(scan.root_fd).st_dev),)).fetchone():
+                    raise MoveError('nested_mount_unsupported')
                 self.preflight(scan)
                 if self.journal_path:
                     jf = Location(os.path.dirname(self.journal_path)).open()
