@@ -45,3 +45,29 @@ synthesis .agent-local/reviews/macos-relocation-20261118.md. Separate agents, no
 independence claim. Blockers resolved; STAMP waits for final CI.
 
 PR8 feedback read at928dac5: conversation/reviews/inline all empty; CI running.
+
+
+## STAMP — delivered, unmerged
+
+PR: https://github.com/eaglessong/dup-media-file-detector/pull/8
+Reviewed/tested implementation43b7ae6a5eb9524e9af2068763eab73ab2d2b7f9;
+base cac461f8f362ab4817533b5bc38447bb2be9fc1f.
+All five checks SUCCESS at that head: Linux application3.11/3.13,
+macOS3.11/3.13 and framework.
+Application run https://github.com/eaglessong/dup-media-file-detector/actions/runs/44248249425
+Framework run https://github.com/eaglessong/dup-media-file-detector/actions/runs/44248249440
+Downloaded CI log confirms Linux privileged31 integration+8 E2E per Python;
+macOS mandatory native31 integration, and25 E2E total (18pass,7Linux-only skips)
+per Python, including all7 new macOS E2E. Required cross-volume/nested-mount cases
+execute after APFS image attachment, with no native-case skip in that stage.
+Earlier broad integration invocation intentionally skips the2 image-required cases,
+which are then run successfully by the mandatory image stage.
+PR conversation/reviews/inline all empty after verification. Final artifact-only commit
+will be checked again at its own head; source evidence above remains pinned honestly.
+Synthetic image successfully detached and removed; no user originals operated on.
+
+Try normal-user macOS APFS dry-run from repository:
+`python3 -m dup_media --move-duplicates SOURCE --destination DEST --dry-run`.
+Header identifies macos-data-only; resource forks block, other metadata is not copied.
+Execution additionally needs a new external --journal and --exclusive-access.
+No merge authorized/performed. complete means review-ready, not merged.
