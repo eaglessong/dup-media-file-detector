@@ -41,3 +41,9 @@ local helper is `scripts/ship_it.py`. Framework test discovery runs the helper's
 Keep no-merge durable and never treat local state as remote merge authorization/proof.
 Behavioral skill evaluation must use offline fixtures; do not merge a real PR merely
 to test the port. No service credentials are needed for local framework tests.
+
+Media-size-summary tests share synthetic recipes in `tests/summary_fixtures.py`.
+Integration and CLI suites assert exact totals for unique/duplicate/hard-linked paths,
+selection, empty trees, partial errors and large sparse logical lengths. The indexed
+arithmetic case in `tests/test_application.py` verifies totals beyond signed 64-bit;
+it is not a huge-filesystem test. Existing CI discovery runs these tests automatically.

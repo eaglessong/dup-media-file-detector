@@ -26,7 +26,23 @@ avi mkv mpg mpeg webm wmv mts m2ts 3gp mp3 m4a aac flac wav ogg opus wma aiff ai
 Empty matching files are included. Symbolic links and special files are skipped.
 Non-UTF-8 filenames produce an incomplete inventory with an escaped diagnostic name.
 
-JSON contains `schema_version`, `complete`, `groups`, and `errors`. Each group contains
+JSON contains `schema_version`, `complete`, `summary`, `groups`, and `errors`.
+Every report includes a whole-scan summary, for example:
+
+```json
+{"summary": {"media_file_count": 3, "total_size_bytes": 250, "complete": true}}
+```
+
+This counts all validated selected media paths, including unique files and each hardlink.
+Sizes are exact logical bytes; sparse-file holes count too. Empty matching files count
+as files with zero bytes. An empty/no-matching-media tree reports zero files/bytes.
+When any scan error occurs, `summary.complete` and report `complete` are false, exit
+code is 1, and the count/bytes describe only validated files. Inspect `errors`; files
+hidden by inaccessible directories are unknown. Partial totals are observations of a
+live tree, not guaranteed lower bounds. The schema version stays 1 with an additive
+summary field; strict consumers must allow that field.
+
+Each group contains
 `size_bytes`, `total_bytes` (logical bytes across all paths), and `files` with root-relative
 `path` and `storage_id`. Equal storage IDs identify hard-linked paths and are meaningful
 only on the scanned filesystem; total bytes do not represent reclaimable disk space.
@@ -63,7 +79,8 @@ with tempfile.TemporaryDirectory() as folder:
 PY
 ```
 
-The `.jpg` fixtures test binary equality and extension selection, not image decoding.
+The demo also reports `media_file_count: 3` and `total_size_bytes: 53` with a complete
+summary. The `.jpg` fixtures test binary equality and extension selection, not image decoding.
 
 ## Artifact-driven development
 

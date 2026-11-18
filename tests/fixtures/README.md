@@ -11,3 +11,12 @@ Unicode names, hardlinks, symlinks, FIFO, mode-restricted directories, and spars
 for cancellation. All data is original synthetic test data; no decoding is performed
 and no third-party media license is required. Linux-only invalid-byte names test safe
 incomplete reporting. Test files are removed by TemporaryDirectory cleanup.
+
+Media-size-summary uses `tests/summary_fixtures.py`: original literal bytes of 100,
+100 and 50 bytes under selected extensions, plus 75 ignored bytes; expected summary is
+3 paths / 250 logical bytes, or 4 / 350 with a hardlink. No image/audio decoding is
+claimed. Integration/E2E add temporary links, FIFO, zero-byte files, real mode restrictions
+and sparse files sized 2**32+1 and 2**32+2. Tests never read sparse payloads for snapshots.
+A separate synthetic SQLite-row test covers aggregate arithmetic above 64-bit without
+claiming such a filesystem fixture. Controlled mutation/I/O fault injection is labeled;
+real paths and subprocesses still exercise the filesystem/CLI boundaries.
