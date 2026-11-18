@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "feature": "revert-move",
+  "kind": "application",
+  "phase": "design-delivered",
+  "design": "docs/design/revert-move.md",
+  "blockers": [],
+  "verification": [],
+  "review": {
+    "mode": "self-review",
+    "evidence": "work-items/revert-move/evidence.md",
+    "unresolved_blocking_findings": []
+  }
+}
