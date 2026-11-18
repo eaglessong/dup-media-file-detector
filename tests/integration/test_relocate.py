@@ -140,7 +140,7 @@ class TransferIntegration(MoveFixture):
         with sqlite3.connect(self.journal / 'journal.sqlite') as db:
             self.assertEqual(db.execute('SELECT state FROM items').fetchone()[0], 'destination_verified')
 
-    def test_keeper_change_and_source_symlink_replacement_stop_before_removal(self):
+    def test_keeper_change_stops_before_removal(self):
         def mutate(stage, path):
             if stage == 'published':
                 (self.source / 'a.jpg').write_bytes(b'x' * 100)
@@ -149,7 +149,7 @@ class TransferIntegration(MoveFixture):
         self.assertEqual(code, 1)
         self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
 
-    def test_trusted_attributes_and_flags_are_not_silently_discarded(self):
+    def test_trusted_attributes_are_not_silently_discarded(self):
         p = self.source / 'nested/b.jpg'
         os.setxattr(p, 'trusted.fixture', b'must not be hidden')
         code, records = self.run_move()
@@ -226,7 +226,7 @@ class TransferIntegration(MoveFixture):
             fcntl.ioctl(fd, 0x40086602, flags, True)
             os.close(fd)
 
-    def test_no_replace_link_and_directory_sync_failures_retain_source(self):
+    def test_unsupported_no_replace_link_retains_source(self):
         before = tree(self.source)
         with patch('dup_media.relocate.os.link', side_effect=OSError(errno.EOPNOTSUPP, 'synthetic publication unsupported')):
             code, records = self.run_move()

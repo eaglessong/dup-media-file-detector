@@ -1,6 +1,6 @@
 # Move duplicate media files
 
-**Status:** Design delivered — no implementation authorized
+**Status:** Implementation under verification/review — PR #8 remains unmerged
 
 ## Goal and user requirements
 
@@ -22,7 +22,8 @@ USER chose the first root-relative path in deterministic alphabetical order.
 Retain extension selection, exact byte proof, skipped symlinks/special files and the
 existing read-only scan command. Only a future explicit relocation invocation may
 modify source paths. Unique media and non-media remain untouched. No deletion-only,
-approximate matching, uploads, media decoding or implementation in this delivery.
+approximate matching, uploads or media decoding. USER subsequently authorized implementation
+with `/forge implement move-dup-files`; no merge or real-library operation is requested.
 
 ## SURVEY decisions
 

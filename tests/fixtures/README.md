@@ -20,3 +20,16 @@ and sparse files sized 2**32+1 and 2**32+2. Tests never read sparse payloads for
 A separate synthetic SQLite-row test covers aggregate arithmetic above 64-bit without
 claiming such a filesystem fixture. Controlled mutation/I/O fault injection is labeled;
 real paths and subprocesses still exercise the filesystem/CLI boundaries.
+
+Relocation fixtures are original temporary literal bytes (`tests/move_fixtures.py`).
+The shared tree contains two equal 100-byte media paths, a unique50-byte path and an
+ignored100-byte text file. Real hardlinks, user/trusted xattrs, a synthetic valid POSIX
+ACL encoding, NODUMP ioctl flags and disposable bind/tmpfs mounts test actual metadata
+and containment. All mounts are unmounted in finally blocks. Publication/fsync/journal
+failures are explicitly injected and checked against surviving bytes, not called real
+disk-full or power-loss evidence. Signal tests launch the shipped main/argparse in a
+subprocess and patch only a deterministic observation checkpoint to send real SIGINT/
+SIGKILL; ordinary cross-volume E2E uses the actual `-m dup_media` entry point unpatched.
+Linux CI requires privileges and ext4 plus distinct-device `/dev/shm` tmpfs. The bounded
+probe generates10,000 files of16 bytes (5,000 exact pairs) and a separate16-MiB pair;
+no private media, decoder or downloaded samples. Results are not NAS throughput claims.

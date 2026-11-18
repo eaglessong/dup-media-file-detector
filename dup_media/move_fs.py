@@ -1,9 +1,7 @@
 """Conservative Linux relocation filesystem adapter; scanning does not depend on it."""
 import array
 import ctypes
-import errno
 import fcntl
-import json
 import os
 from pathlib import Path
 import stat
@@ -105,7 +103,7 @@ def overlap(a, b):
 
 
 def runtime():
-    if not sys.platform.startswith('linux') or os.geteuid() != 0:
+    if not sys.platform.startswith('linux') or ctypes.sizeof(ctypes.c_void_p) != 8 or os.geteuid() != 0:
         raise MoveError('unsupported_metadata_runtime')
     with open('/proc/self/status', encoding='ascii') as stream:
         caps = next(int(s.split()[1], 16) for s in stream if s.startswith('CapEff:'))
@@ -171,6 +169,8 @@ def metadata(fd):
     kind = filesystem(fd)
     libc = ctypes.CDLL(None, use_errno=True)
     buf = ctypes.create_string_buffer(256)
+    if not hasattr(libc, 'statx'):
+        raise MoveError('statx_unavailable')
     # statx(fd, "", AT_EMPTY_PATH, STATX_BASIC_STATS, buf).
     if libc.statx(fd, b'', 0x1000, 0x7ff, buf) != 0:
         raise MoveError('metadata_probe_failed')

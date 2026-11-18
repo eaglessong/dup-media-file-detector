@@ -118,3 +118,52 @@ actual-module cross-device E2E fixtures; CI requires capabilities instead of ski
 Local macOS compile/contract checks pass; new root/mode rejection tests pass. Privileged
 move tests explicitly skip locally (12 integration,3 E2E at this checkpoint). Preparing
 an incomplete draft PR to obtain required Linux filesystem evidence; no completion claim.
+
+## TEMPER / real Linux capability evidence
+
+Draft PR: https://github.com/eaglessong/dup-media-file-detector/pull/8.
+Initial CI44244344141 at8246fc3 failed one privileged diagnostic assertion: Scan.source
+wrapped MoveError as SourceFailure, hiding its specific metadata code. Fixed by using
+a relocation checked-source context preserving error codes and accounting only for
+controlled ctime updates. CI44244518206 passed both Linux versions atc43105d.
+
+Added mount aliases, last-moment identity/byte checks, actual ACL/flags, cross-device
+hardlinks and deterministic signal boundary probes. CI44244662426 at5dfb8fc passed all
+21 privileged integration tests but failed the dropped-user CLI fixture because runner
+home was not importable by that user. Corrected the fixture to provide a readable copy
+of the shipped package in a disposable directory; did not weaken expected refusal.
+
+CI44244874498 at1bc5289 passed Linux Python3.11 and3.13:
+-2 application contract tests each; unprivileged integration46 discovered,25 passed,
+ 21 privileged cases explicitly skipped there; privileged rerun22/22 passes (including
+ root-safety test). No privileged test skipped with REQUIRE_MOVE_TESTS=1.
+-Ordinary E2E16 discovered,11 passed/5 privileged skips; privileged E2E6/6 passes,
+ including real distinct-device ext4↔tmpfs transfer, dropped privileges, SIGINT and
+ SIGKILL receipts. Legacy permission/filename tests ran as the normal runner user.
+-Real ACL/trusted-xattr/NODUMP rejection, no-replace conflicts, hardlink ctime,
+ directory replacement, bind mount/nested mount rejection and user-xattr/mode/mtime
+ preservation passed. File/directory fsync succeeds in ordinary transfer paths.
+
+Bounded Python3.13 Ubuntu measurement from same CI, using scripts.probe_move:
+10,00016-byte selected files/160,000source bytes/5,000groups: dry-run2.773seconds,
+peak RSS32,576KiB, SQLite index3,633,152bytes. Separate16,777,216-byte relocation:
+0.152seconds, process peak RSS37,256KiB. Includes full fresh scan/copy verification;
+synthetic runner/cache result, not NAS/production throughput or asymptotic proof.
+Full local log retained ignored in .agent-local/move-dup-files/ci-44244874498.log.
+
+Local non-root macOS Python3.13.16: framework29 tests pass; compileall/CLI help and
+2 contracts pass; integration and CLI suites pass applicable tests with Linux privilege
+cases and one filename fixture explicitly skipped. Local skips do not claim transfer
+success; Linux hosted runs supply that evidence. No private roots were scanned.
+
+Additional source review found and fixed final-boundary checks: after the last callback,
+reopen pinned roots/parents, reprove both source signatures and destination metadata/
+bytes before unlink. The added same-size source/destination mutation regression passes
+in CI44244874498. Cooperative source/destination directory locks and explicit exclusive
+access acknowledgement supplement, but do not claim to eliminate arbitrary writer races.
+A final compatibility guard rejects32-bit Linux and missing libc statx rather than
+leaking AttributeError; source semantics and Linux test paths otherwise unchanged.
+
+Entering Full ASSAY: code-review five roles plus implementation challenger, scale,
+diagnostics/security and test-realism instruments. Coordinator owns all edits/tests;
+reviewers read only, do not execute candidate code or claim human independence.
