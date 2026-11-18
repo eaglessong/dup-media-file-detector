@@ -1,6 +1,6 @@
 # Revert move
 
-**Status:** Design delivered — not implemented
+**Status:** Implemented on feature branch — verification/review/PR pending
 
 ## Goal and USER requirements
 
@@ -61,3 +61,12 @@ No automatic partial resume/rollback, alternate restore roots, overwrite, direct
 pruning, platform expansion, original inode/topology recovery or restoration of discarded
 macOS metadata. Resume with SMELT and fixture reassessment before implementation. This
 work item depends on future forward-move manifest writing; legacy mode stays explicit.
+
+
+## Implementation resume
+
+USER `/forge implement revert-move` now authorizes implementation/tests/PR delivery,
+not merge or personal-file operations. Earlier design-only scope above is historical.
+Current native implementations and evidence are in recovery.py/revert.py and evidence.md;
+future forward moves write self-contained records. Do not treat pending CI/review as
+completion. Existing untracked move.json remains unread/unmodified.

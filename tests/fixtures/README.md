@@ -38,3 +38,14 @@ no private media, decoder or downloaded samples. Results are not NAS throughput 
 macOS relocation fixtures are original literal synthetic bytes, not decoded media.
 Native libc creates disposable resource forks and arbitrary metadata attributes; APFS
 image fixtures contain only generated test data and are detached after testing.
+
+
+Revert fixtures: tests/revert_fixtures.py generates original literal bytes and actual
+forward-writer recovery records in disposable trees. Legacy synthesis removes only
+the new recovery sidecar; unchanged external roots/items schema matches4af6c1f and has
+no invented original-root field. Native metadata/permissions and second ext4/APFS
+volumes test real boundaries. Mutated SQL/schema/path inputs are synthetic adversarial
+records, not private journals. Signal checkpoints deliver real SIGINT/SIGKILL; copy/
+flush/receipt failures are explicitly injected. Whole-namespace snapshots include all
+recovery files/DB bytes (normal read-atime excluded); tree() is only the media/data
+inventory and intentionally excludes the reserved recovery control subtree.

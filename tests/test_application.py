@@ -31,3 +31,19 @@ class SummaryArithmeticChecks(unittest.TestCase):
                 self.assertEqual(scan.write(output), 0)
                 self.assertEqual(json.loads(output.getvalue())['summary'],
                                  {'media_file_count': 2, 'total_size_bytes': 2**63, 'complete': True})
+
+
+class RevertArguments(unittest.TestCase):
+    def test_explicit_mode_and_legacy_pair_required(self):
+        import subprocess
+        import sys
+        for extra in [[], ['--move-duplicates'], ['--original-root', 'original'],
+                      ['--exclusive-access', '--extensions', 'jpg'],
+                      ['--exclusive-access', '--destination', 'other'],
+                      ['--exclusive-access', '--journal', 'new-operation']]:
+            with self.subTest(extra=extra):
+                result = subprocess.run([sys.executable, '-m', 'dup_media', '--revert-move',
+                                         'nonexistent-disposable-placeholder', *extra],
+                                        capture_output=True, text=True, timeout=10)
+                self.assertEqual(result.returncode, 2)
+                self.assertIn('revert requires', result.stderr)

@@ -1,6 +1,6 @@
 # Revert move
 
-**Status:** Design delivered — application code not implemented
+**Status:** Implementation in verification — no merge authorized
 
 ## Problem and current state
 
@@ -76,7 +76,7 @@ Design-only scope grants no application implementation, actual file operations o
 
 ## CLI and visible behavior
 
-Proposed commands, **not available in the shipped CLI yet**:
+Implemented feature-branch interface (delivery/CI pending):
 
 ```sh
 # Future manifest-backed operation: only location input is the archive root.
@@ -350,3 +350,14 @@ validate native durability/control DB behavior and bounded parser limits; if una
 report the prerequisite rather than weaken fail-closed safety. Retain the explicit legacy
 completion-evidence limit and same-user provenance trust assumption. Revisit for signed
 portable manifests, moved roots, interrupted-operation recovery or additional filesystems.
+
+
+## Implementation receipts (2026-11-18, AGENT)
+
+USER resumed with `/forge implement revert-move`. New recovery.py and revert.py implement
+versioned protected SQLite records and a separate recorded-path planner. Existing move
+journal schema is unchanged. Read-only SQLite inputs reject sidecars/schema objects;
+mutable scratch/spill remains outside operation trees. Implementation conservatively
+refuses any unresolved operation in an archive even with an explicit selector, rather
+than claim partial-operation isolation. Text records are capped at2MiB, paths4096UTF-8
+bytes. Full final CI/review evidence is maintained in the work item, not inferred here.

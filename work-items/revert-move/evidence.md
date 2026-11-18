@@ -119,3 +119,53 @@ triggered. New artifacts are the brief/status/evidence, design and ADR006 only. 
 framework tooling or skill changed, so framework unit tests are not required for this
 prose-only delivery. No PR was opened. Next work requires a separate implementation
 request; retain design-delivered phase until then.
+
+
+## Implementation resume — 2026-11-18
+
+USER `/forge implement revert-move` authorizes application/test/CI/docs and PR delivery,
+not merge or personal-library operations. Reusing the five distinct PROSPECT scout
+receipts: application base remains4af6c1f; only design artifacts55abc44 were added.
+Base/head/merge-base resolved before implementation; untracked move.json remains unread.
+SMELT confirms accepted SURVEY and R1–R10, with no new product question. Existing native
+APFS host and hosted required ext4/APFS Python3.11/3.13 tests supply the environment plan.
+Test data ADEQUATE for implementation planning, execution pending. New format capture
+will use the actual future writer in disposable trees and malformed synthetic records,
+not private archives. Prior design-only statements remain historical.
+
+
+### TEMPER initial implementation receipts
+
+New native APFS revert suites with real second-device image:20integration and15actual
+CLI E2E pass, zero skips. Disposable image created/attached/detached/removed by coordinator;
+logs native-revert-integration.log/native-revert-e2e.log under ignored forge-revert-move.
+Initial legacy repeat bug (late-bound generator reader) fixed; affected suites rerun.
+Initial existing forward tests failed on expected extra control files and reuse of a
+failed archive; media inventory assertions now exclude reserved control while full
+namespace snapshots include DB/control bytes, and retry fixture uses a fresh archive.
+
+Broad required-mode local APFS run:54integration and59E2E had one failure each, both
+existing foreign-owned-sticky setup unavailable because local sudo-n cannot chown the
+fixture. Those native old cases remain mandatory in hosted CI; not downgraded or claimed
+passed locally. New revert mandatory suites independently passed. Ordinary local full
+suite results/logs distinguish all explicit platform/setup skips.
+
+Scale: local macOS/Python3.13 synthetic registered10k-entry revert dry-run5.119s,
+index4,186,112bytes, manifest2,895,872bytes, process peak37,360KiB. Dataset: one real
+forward-writer seed plus9,999synthetic registered16-byte archive files, not10kactual
+forward moves. Actual16MiB forward/reverse round-trip revert0.398s, process high-water
+42,912KiB (not incremental RSS). scripts/probe_revert.py reproduces both in disposable
+trees. No NAS/production/power-loss claim. Native source-locator refinement uses Darwin
+F_GETPATH_NOFIRMLINK; affected round-trip tests will rerun.
+
+
+Local full verification (macOS/Python3.13): forge check exit0; framework/application
+root discovery30tests exit0; compileall/help exit0; application contracts3tests exit0;
+full integration130tests exit0 with55explicit skips; full E2E59tests exit0 with26explicit
+skips. Supported-platform required cross-volume revert20integration+15E2E exit0 with
+zero skips in a separate real APFS image. Native locator refinement rechecked by the
+20-case integration suite (one optional second-volume skip in that separate rerun).
+Logs and exact command receipts under .agent-local/forge-revert-move/. Existing required
+foreign-owner sticky fixture remains a hosted-CI prerequisite; Linux native checks not
+run on this host. No private media operation. Source checks are sufficient to start
+ASSAY; final STAMP requires actual exact-head hosted CI and finding resolution.

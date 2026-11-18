@@ -1,6 +1,6 @@
 # ADR-006: Explicit completed-move restoration
 
-**Status:** Accepted for design; not implemented
+**Status:** Accepted; implementation in verification
 **Decided by:** USER (requirements/choices), AGENT (mechanisms below)
 **Date:**2026-11-18
 **Feature:** revert-move
@@ -90,3 +90,16 @@ for portable/signed manifests, alternate restore roots, partial recovery, new pl
 or a broader metadata policy. ADR003–005 remain in force except the explicit additional
 reverse-control receipt location and new designed restore mode. No implementation,
 GitHub publication, merge, release or media mutation is authorized by this delivery.
+
+
+## Implementation refinement (AGENT, 2026-11-18)
+
+USER resumed with `/forge implement revert-move`; code/tests and PR delivery now in
+scope, not merge or private-media operations. Use a fixed protected format marker,
+UUID operation directories and SQLite manifests/receipts. Limit each persisted text
+record to2MiB and relative paths to4096UTF-8bytes; reject unsafe schemas/types/sidecars
+rather than loading untrusted executable database objects. Reader uses read-only pinned
+files with SQLite extension loading disabled and trusted_schema OFF; mutable runtime
+indexes live in external private scratch with SQLite spill pinned there. Exact native
+writer/reader round trips are required before claiming format support. Implementation
+may refuse ambiguous operation isolation conservatively; never auto-select latest.

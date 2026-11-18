@@ -12,6 +12,7 @@ from .scan import Scan, DIR_FLAGS, CHUNK, signature
 from .move_fs import (Location, MoveError, absolute, overlap, runtime, filesystem,
                       mounts, scratch_outside, attrs, metadata, apply_metadata, identity, sync_file, metadata_policy, check_delete, check_create)
 from .move_journal import Journal
+from .recovery import Manifest, preflight_control
 
 
 def emit(output, **record):
@@ -152,8 +153,10 @@ class Relocation:
         finally:
             os.close(nearest)
         total = 0
+        recovery_overhead = 1024 * 1024
         for path, keeper, size, meta in self.rows(scan):
             total += size
+            recovery_overhead += 4096 + 2 * len(meta.encode('utf-8'))
             parts = path.split('/')
             for i, part in enumerate(parts, 1):
                 if not part or part in ('.', '..') or len(os.fsencode(part)) > limit:
@@ -194,8 +197,10 @@ class Relocation:
                 check_delete(parent, parts[-1], path)
             finally:
                 os.close(parent)
-        if total > available:
+        if total + (recovery_overhead if scan.db.execute('SELECT 1 FROM move_plan LIMIT 1').fetchone() else 0) > available:
             raise MoveError('insufficient_space')
+        if total or scan.db.execute('SELECT 1 FROM move_plan LIMIT 1').fetchone():
+            preflight_control(self.destination, self.rows(scan))
         scan.db.commit()
 
     @contextmanager
@@ -319,6 +324,7 @@ class Relocation:
         moved = byte_count = count = errors = 0
         current = '.'
         journal = None
+        manifest = None
         with Scan(self.source.path, extensions, scratch_dir=self.scratch, pin_sqlite_temp=True) as scan:
             pinned = self.source.open()
             try:
@@ -366,6 +372,7 @@ class Relocation:
                             fcntl.flock(dest_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
                             final_dest_lock = os.dup(dest_fd)
                         journal = Journal(self.journal_path, scan.root_fd, dest_fd, self.rows(scan), scan.db)
+                        manifest = Manifest(self.source, self.destination, scan)
                     finally:
                         os.close(dest_fd)
                 for path, keeper, size, meta in self.rows(scan):
@@ -378,6 +385,8 @@ class Relocation:
                         byte_count += size
                         emit(output, type='item', keeper=keeper, source=path, destination=path,
                              size_bytes=size, status='moved')
+                if manifest:
+                    manifest.complete(self.destination, self.source, journal)
             except (OSError, ValueError, sqlite3.Error) as exc:
                 if isinstance(exc, BrokenPipeError):
                     raise
@@ -391,6 +400,8 @@ class Relocation:
                         pass  # Existing durable transition remains; never remove more sources.
                 emit(output, type='error', source=path, code=code)
             finally:
+                if manifest:
+                    manifest.close()
                 if journal:
                     moved = byte_count = 0
                     for (size,) in journal.db.execute("SELECT size FROM items WHERE state='source_removed'"):
