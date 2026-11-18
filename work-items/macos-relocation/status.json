@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature": "macos-relocation",
   "kind": "application",
-  "phase": "assay",
+  "phase": "stamp",
   "design": "docs/design/macos-relocation.md",
   "blockers": [],
   "verification": [
@@ -50,8 +50,8 @@
     }
   ],
   "review": {
-    "mode": "pending",
-    "evidence": "",
+    "mode": "independent",
+    "evidence": "work-items/macos-relocation/evidence.md",
     "unresolved_blocking_findings": []
   }
 }

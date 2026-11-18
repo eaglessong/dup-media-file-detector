@@ -135,6 +135,25 @@ class MacRelocation(MacFixture):
         finally:
             os.chflags(victim, 0)
 
+    def test_post_publication_fullsync_failure_retains_source_and_copy(self):
+        from dup_media.move_darwin import sync_file
+        calls = 0
+        def fail_second(fd):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise OSError('synthetic publication flush failure')
+            sync_file(fd)
+        with patch('dup_media.relocate.sync_file', fail_second):
+            code, records = self.run_move()
+        self.assertEqual(code, 1, records)
+        self.assertEqual(calls, 2)
+        self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertEqual(records[-1]['moved'], 0)
+        with sqlite3.connect(self.journal / 'journal.sqlite') as db:
+            self.assertEqual(db.execute('SELECT state FROM items').fetchone()[0], 'staged_verified')
+
     def test_journal_parent_replacement_stops_before_removal(self):
         def inject(stage, path):
             if stage == 'published':
