@@ -390,7 +390,7 @@ class TransferIntegration(MoveFixture):
             target.flush()
             raise OSError(errno.ENOSPC, 'synthetic write failure after partial staging copy')
         before = tree(self.source)
-        with patch('dup_media.relocate.copy_stream', fail) as fault:
+        with patch('dup_media.relocate.copy_stream', side_effect=fail) as fault:
             code, records = self.run_move()
             fault.assert_called_once()
         self.assertEqual(code, 1)
