@@ -1,6 +1,6 @@
 # Move duplicate media files
 
-**Status:** Implemented, verified and agent-reviewed — PR #8 remains unmerged
+**Status:** Implemented, verified and agent-reviewed — PR #8 authorized for shipping
 
 ## Goal and user requirements
 
@@ -49,3 +49,9 @@ See [design](../../docs/design/move-dup-files.md) and [evidence](evidence.md).
 
 PR8 F1 follow-up resumes implementation to close static permission preflight; see
 macOS work-item evidence and ADR-005. No merge or real-library operation authorized.
+
+
+USER subsequently invoked `/ship-it 8`, authorizing scoped F2 repair, verification,
+PR replies and normal head-pinned squash merge. Static Linux parent-inode preflight
+and native regression evidence are recorded in ADR-005 and this work item's evidence.
+The earlier no-merge statements above describe prior implementation scope.

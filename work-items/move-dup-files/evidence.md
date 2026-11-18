@@ -294,3 +294,21 @@ CLI tier executes `python -m dup_media`. Fixtures check native flag/project read
 actual unlink denial even for root, and actual inherited child project ID. Flag/project
 cleanup is in finally. Journal-specific checks apply only to execution because dry-run
 accepts no journal. Required ext4 CI remains pending; no claim of F2 native closure yet.
+
+
+F2 ASSAY and hosted TEMPER closure: repair commitb8752afea6b78f17a086dd4d99c207a69853b7b0,
+basecac461f8f362ab4817533b5bc38447bb2be9fc1f. Application run44254254703 ran
+Linux32privileged integration+9E2E with zero skips on Python3.11/3.13, including both
+new parent-policy methods and all10native recipes. macOS34mandatory integration and
+10native relocation E2E also pass per version (wholeE2E29 includes8Linux-only skips).
+Framework run44254254656 passes. Hosted logs captured under ignored ship-it/pr-8.
+
+Scoped architecture/deep-read/rules/operations and test-impact/realism agents returned
+NO BLOCKING FINDINGS; separate final Devil's Advocate confirmed source deletion,
+nearest-existing destination/journal parents and missing-descendant inheritance probes.
+Both new methods HONEST. Primary authored implementation; separate agents do not imply
+human independence. Prior full28-file patrol remains evidence for unchanged scope.
+Report: .agent-local/reviews/ship8-parent-policy-b8752af-20261118.md. F2 FIXED;
+no unresolved review finding. Branch rules/protection API403 remains unavailable;
+normal GitHub merge policy must enforce the authorized merge. No admin bypass.
+Final documentation commit CI and fresh feedback/merge gates remain to be checked.
