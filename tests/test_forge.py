@@ -186,6 +186,16 @@ class ForgeTests(unittest.TestCase):
         self.status(phase="complete")
         self.assertIn("completion missing passing scopes", "\n".join(forge.check(self.root)))
 
+    def test_patrol_materials_are_required_linked_and_mirrored(self):
+        skill = self.root / ".claude/skills/patrol/SKILL.md"
+        skill.write_text(skill.read_text() + "\nChanged\n")
+        self.assertIn("patrol skill entry points must be identical.", forge.check(self.root))
+        protocol = self.root / "docs/patrol/sweep.md"
+        protocol.write_text(protocol.read_text() + "\n[Missing](absent.md)\n")
+        self.assertTrue(any("absent.md" in error for error in forge.check(self.root)))
+        protocol.unlink()
+        self.assertIn("Missing required file: docs/patrol/sweep.md", forge.check(self.root))
+
     def test_ship_it_materials_are_required_linked_and_mirrored(self):
         skill = self.root / ".claude/skills/ship-it/SKILL.md"
         skill.write_text("divergent ship instructions")

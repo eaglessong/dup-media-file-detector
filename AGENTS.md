@@ -34,6 +34,9 @@ Record assumptions as AGENT decisions; never attribute them to the user.
 - Open a PR when GitHub is available and the task authorizes delivery. Include a short
   user-facing demo, decisions, test evidence, review findings, and remaining risks.
   Read CI plus PR conversation, reviews, and inline comments; fix failures and findings.
+- `/patrol` publishes grounded PR reviews using code-review; docs/patrol/sweep.md
+  defines dry-run, snapshot and duplicate-post handling. Installing it does not authorize
+  posting. It never fixes branches, approves or merges.
 - `/ship-it` owns the authorized PR feedback/CI/merge lifecycle; its shared playbook is
   docs/ship-it/iteration-playbook.md. Explicit --no-merge survives resume. Installing the
   skill or invoking forge/code-review alone does not authorize merge.
@@ -44,7 +47,7 @@ Record assumptions as AGENT decisions; never attribute them to the user.
 
 Run `python3 scripts/forge.py check` and
 `python3 -m unittest discover -s tests -v` after changing the framework. Keep matching
-forge, code-review and ship-it skill entry points identical across agent integrations. Use only Python's standard library
+forge, code-review, ship-it and patrol skill entry points identical across agent integrations. Use only Python's standard library
 for framework tooling unless a design justifies a new dependency. Forge's shared prompts
 and protocols live in docs/forge/; bind prompts with scripts/forge.py render-prompt and
 validate references/contracts with scripts/forge.py check. The application uses

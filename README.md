@@ -162,3 +162,11 @@ preserve no-merge across resume, stop at bounded rounds/repeated failures and us
 cron or background hosted worker. The local helper records progress only; actual fresh
 GitHub evidence, scoped verification and user authority govern merge. If slash commands
 are not discovered, ask the agent to follow `.agents/skills/ship-it/SKILL.md`.
+
+### Publish PR reviews with patrol
+
+`/patrol 12 --dry-run` reviews PR #12 and saves a local report without posting.
+`/patrol 12` publishes actionable findings/CI context; `/patrol` sweeps eligible open
+non-draft PRs updated within 24h. `--since all` widens the sweep. Complete clean reviews
+with green CI need no post. The workflow never changes code, approves or merges.
+See [sweep protocol](docs/patrol/sweep.md). Shared materials stay under docs/.

@@ -47,3 +47,7 @@ Integration and CLI suites assert exact totals for unique/duplicate/hard-linked 
 selection, empty trees, partial errors and large sparse logical lengths. The indexed
 arithmetic case in `tests/test_application.py` verifies totals beyond signed 64-bit;
 it is not a huge-filesystem test. Existing CI discovery runs these tests automatically.
+
+Patrol contributors: docs/patrol/sweep.md defines publication/deduplication behavior.
+Evaluate with offline PR snapshots; installing the skill does not authorize posting
+live reviews. Keep both skill entrypoints mirrored and run framework checks/tests.

@@ -34,6 +34,8 @@ REQUIRED = (
     ".agents/skills/ship-it/SKILL.md", ".claude/skills/ship-it/SKILL.md",
     "docs/ship-it/iteration-playbook.md", "docs/ship-it/state-and-evidence.md",
     "docs/ship-it/PORTING.md", "scripts/ship_it.py",
+    ".agents/skills/patrol/SKILL.md", ".claude/skills/patrol/SKILL.md",
+    "docs/patrol/sweep.md",
 ) + tuple(f"docs/forge/prompts/{role}.md" for role in PROMPT_INPUTS) + tuple(
     f"docs/forge/references/{name}.md" for name in FORGE_REFERENCES
 )
@@ -146,10 +148,11 @@ def check_forge_materials(root: Path) -> list[str]:
         except (OSError, ValueError) as exc:
             errors.append(str(exc))
     # Validate portable relative Markdown links in the workflow/skills/shared materials.
-    materials = [name for name in REQUIRED if name.startswith(("docs/forge/", "docs/ship-it/"))]
+    materials = [name for name in REQUIRED if name.startswith(("docs/forge/", "docs/ship-it/", "docs/patrol/"))]
     materials += ["docs/WORKFLOW.md", ".agents/skills/forge/SKILL.md",
                   ".claude/skills/forge/SKILL.md", ".agents/skills/ship-it/SKILL.md",
-                  ".claude/skills/ship-it/SKILL.md"]
+                  ".claude/skills/ship-it/SKILL.md", ".agents/skills/patrol/SKILL.md",
+                  ".claude/skills/patrol/SKILL.md"]
     for name in materials:
         source = root / name
         if not source.is_file():
@@ -169,7 +172,7 @@ def check(root: Path) -> list[str]:
     for name in REQUIRED:
         if not (root / name).is_file():
             errors.append(f"Missing required file: {name}")
-    for skill in ("forge", "code-review", "ship-it"):
+    for skill in ("forge", "code-review", "ship-it", "patrol"):
         a = root / f".agents/skills/{skill}/SKILL.md"
         b = root / f".claude/skills/{skill}/SKILL.md"
         if a.is_file() and b.is_file() and a.read_bytes() != b.read_bytes():
