@@ -186,6 +186,16 @@ class ForgeTests(unittest.TestCase):
         self.status(phase="complete")
         self.assertIn("completion missing passing scopes", "\n".join(forge.check(self.root)))
 
+    def test_ship_it_materials_are_required_linked_and_mirrored(self):
+        skill = self.root / ".claude/skills/ship-it/SKILL.md"
+        skill.write_text("divergent ship instructions")
+        self.assertIn("ship-it skill entry points must be identical.", forge.check(self.root))
+        playbook = self.root / "docs/ship-it/iteration-playbook.md"
+        playbook.unlink()
+        errors = "\n".join(forge.check(self.root))
+        self.assertIn("Missing required file: docs/ship-it/iteration-playbook.md", errors)
+        self.assertIn("missing or unsafe material link", errors)
+
     def test_review_skill_is_required_and_mirrored(self):
         skill = self.root / ".claude/skills/code_review/SKILL.md"
         skill.write_text("divergent review instructions")

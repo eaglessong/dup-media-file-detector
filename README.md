@@ -124,3 +124,25 @@ It does not launch agents. Framework validation catches missing resources, broke
 material links, template-input drift and mismatched skill entry points; it cannot prove
 workflow execution or product correctness. See the [adaptation map](docs/forge/PORTING.md)
 for what was ported and what was deliberately replaced.
+
+## PR delivery through merge
+
+After forge creates the PR, use the ship-it skill to handle CI/review fixes and land it:
+
+```text
+/ship-it 12
+/ship-it 12 --no-merge
+```
+
+With no number it uses the current branch's PR, or follows forge STAMP to create one
+if needed. Explicit shipping intent authorizes merging that identified PR after fresh
+checks and feedback gates. `--no-merge` performs preparation, fixes, verification and
+necessary PR replies but withholds merge; blockers remain blockers. Neither command
+publishes a release or changes branch rules. Forge/code_review alone do not authorize merge.
+
+Shared instructions are in [docs/ship-it](docs/ship-it/iteration-playbook.md), with paired
+Codex/Claude skill entry points. Runs keep ignored state under `.agent-local/ship-it/`,
+preserve no-merge across resume, stop at bounded rounds/repeated failures and use no
+cron or background hosted worker. The local helper records progress only; actual fresh
+GitHub evidence, scoped verification and user authority govern merge. If slash commands
+are not discovered, ask the agent to follow `.agents/skills/ship-it/SKILL.md`.
