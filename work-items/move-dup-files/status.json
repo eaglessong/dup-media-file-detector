@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "feature": "move-dup-files",
+  "kind": "application",
+  "phase": "complete",
+  "design": "docs/design/move-dup-files.md",
+  "blockers": [],
+  "verification": [
+    {
+      "scope": "framework",
+      "outcome": "passed",
+      "command": "python3 scripts/forge.py check",
+      "exit_code": 0
+    },
+    {
+      "scope": "framework",
+      "outcome": "passed",
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit_code": 0
+    },
+    {
+      "scope": "application",
+      "outcome": "passed",
+      "command": "python3 -m compileall -q dup_media",
+      "exit_code": 0
+    },
+    {
+      "scope": "application",
+      "outcome": "passed",
+      "command": "python3 -m dup_media --help",
+      "exit_code": 0
+    },
+    {
+      "scope": "application",
+      "outcome": "passed",
+      "command": "python3 -m unittest discover -s tests -p test_application.py -v",
+      "exit_code": 0
+    },
+    {
+      "scope": "integration",
+      "outcome": "passed",
+      "command": "python3 -m unittest discover -s tests/integration -v",
+      "exit_code": 0
+    },
+    {
+      "scope": "e2e",
+      "outcome": "passed",
+      "command": "python3 -m unittest discover -s tests/e2e -v",
+      "exit_code": 0
+    },
+    {
+      "scope": "integration",
+      "outcome": "passed",
+      "command": "GitHub Actions44254254703 atb8752af: Linux32 + native macOS34 integration per Python3.11/3.13",
+      "exit_code": 0
+    },
+    {
+      "scope": "e2e",
+      "outcome": "passed",
+      "command": "GitHub Actions44254254703 atb8752af: Linux9 + native macOS10 E2E per Python3.11/3.13",
+      "exit_code": 0
+    }
+  ],
+  "review": {
+    "mode": "independent",
+    "evidence": "work-items/move-dup-files/evidence.md",
+    "unresolved_blocking_findings": []
+  }
+}
