@@ -12,3 +12,22 @@ class ApplicationChecks(unittest.TestCase):
         for invalid in ['', '.jpg', 'jpg,', '../jpg']:
             with self.assertRaises(argparse.ArgumentTypeError):
                 extensions(invalid)
+
+
+class SummaryArithmeticChecks(unittest.TestCase):
+    def test_indexed_totals_beyond_sqlite_sum_range(self):
+        # Synthetic SQLite rows exercise arithmetic/serialization only, not a huge tree.
+        import io
+        import json
+        from pathlib import Path
+        import tempfile
+        from dup_media.scan import Scan
+        with tempfile.TemporaryDirectory() as folder:
+            with Scan(Path(folder).resolve()) as scan:
+                for name in ['a.jpg', 'b.jpg']:
+                    scan.db.execute('INSERT INTO files(path,size) VALUES (?,?)', (name, 2**62))
+                scan.db.execute('INSERT INTO files(path,size,valid) VALUES (?,?,0)', ('invalid.jpg', 10))
+                output = io.StringIO()
+                self.assertEqual(scan.write(output), 0)
+                self.assertEqual(json.loads(output.getvalue())['summary'],
+                                 {'media_file_count': 2, 'total_size_bytes': 2**63, 'complete': True})

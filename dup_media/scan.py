@@ -254,9 +254,21 @@ class Scan:
                 self.error(path, 'directory_unreadable_or_changed')
         self.db.commit()
 
+    def _summary(self, complete):
+        """Count logical bytes per validated path without SQLite SUM overflow."""
+        count = total = 0
+        for (size,) in self.db.execute('SELECT size FROM files WHERE valid=1'):
+            count += 1
+            total += size
+        return {'media_file_count': count, 'total_size_bytes': total,
+                'complete': complete}
+
     def write(self, output):
         complete = not self.db.execute('SELECT 1 FROM errors LIMIT 1').fetchone()
-        output.write('{"schema_version":1,"complete":' + ('true' if complete else 'false') + ',"groups":[')
+        summary = self._summary(complete)
+        output.write('{"schema_version":1,"complete":' + ('true' if complete else 'false') + ',"summary":')
+        json.dump(summary, output)
+        output.write(',"groups":[')
         first = True
         for group_id, size, count in self.db.execute('SELECT group_id,size,COUNT(*) FROM files WHERE valid=1 AND group_id IS NOT NULL GROUP BY group_id HAVING COUNT(*)>1 ORDER BY MIN(path)'):
             if not first:
