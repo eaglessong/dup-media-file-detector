@@ -18,7 +18,7 @@ product and agent rules. No internal hostname, account, dataset or cloud service
 | Credential redactor script | Not ported: enterprise identifier scrubbing does not establish safe personal-media/EXIF redaction |
 | Production telemetry, token server, Redis/deployed pod topology, Rust/organization merge gates | Not applicable; actual local workload and project CI replace them |
 
-The standalone code_review command remains review-only. Forge's ASSAY supplies additional
+The standalone code-review command remains review-only. Forge's ASSAY supplies additional
 instrument-specific tasks/results to its role/challenge/synthesis process, then forge
 owns fixes and reruns. This avoids two duplicate reviewer panels and preserves the
 standalone review boundary. All nine prompts are read-only leaves.

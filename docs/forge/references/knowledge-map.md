@@ -15,7 +15,7 @@ import facts from this map into a finding without reading the implementation.
 | Filesystem tests and entry-point behavior | tests/integration/, tests/e2e/, tests/fixtures/README.md |
 | Actual local checks/CI/platforms | CONTRIBUTING.md, .github/workflows/ |
 | Scaffold, validation and prompt rendering | scripts/forge.py, tests/test_forge.py |
-| Review roles, grounding and synthesized report | docs/code-review/, .agents/skills/code_review/SKILL.md |
+| Review roles, grounding and synthesized report | docs/code-review/, .agents/skills/code-review/SKILL.md |
 | Forge role prompts and protocols | docs/forge/prompts/, docs/forge/references/ |
 
 Current baseline is a local read-only exact-byte scanner, extension-based media

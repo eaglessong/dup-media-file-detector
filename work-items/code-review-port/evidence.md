@@ -54,3 +54,20 @@ for this framework change. GitHub application CI runs them on the PR.
 
 Branch: codex/port-code-review. Owner review/merge remains separate. Resume by checking
 the branch's GitHub PR and CI. The PR contains the final delivery URL and CI results.
+
+## Owner-requested rename — 2026-11-18
+
+USER: “rename the skill 'code_review' to 'code-review'”. Renamed both skill directories
+and frontmatter, invocation docs, active forge/ship-it references, validator required
+paths/mirror checks and existing validator tests. Historical evidence and verbatim
+original USER quotes retain the old name. The design records the superseding request.
+Branch: codex/rename-code-review, based on main; media-size-summary PR #5 is unchanged.
+
+Checks: `python3 scripts/forge.py check` exited 0; `python3 -m unittest discover -s tests -v`
+exited 0 (27 tests); `git diff --check` exited 0. All three mirrored skill pairs match.
+Exact baseline comparison confirms both renamed SKILL.md bodies differ only by replacing
+the old skill name; old directories are absent. Self-review checked maintained references,
+preserved historical quotations, unchanged review authority and validator/test paths.
+Standalone skill-creator quick_validate.py could not run under either system or bundled
+Python because PyYAML is absent (exit 1); this is not recorded as a validation pass.
+No application behavior or dependencies changed. No PR publication or merge performed.

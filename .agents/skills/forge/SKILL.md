@@ -16,7 +16,7 @@ missing artifacts with `python3 scripts/forge.py new-feature <slug>`, preserving
 designs. PROSPECT explores before SURVEY asks consequential questions. SMELT completes
 the design and attributed decisions before FORGE implements. TEMPER proves changed
 behavior through scoped integration and real user-entry-point tests. ASSAY combines
-forge audits with code_review synthesis; STAMP delivers evidence and verifies GitHub CI.
+forge audits with code-review synthesis; STAMP delivers evidence and verifies GitHub CI.
 
 Read supporting materials when their phase needs them:
 

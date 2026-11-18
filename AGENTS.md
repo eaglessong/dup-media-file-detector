@@ -27,7 +27,7 @@ Record assumptions as AGENT decisions; never attribute them to the user.
 - Add actual application checks to CI in the first implementation PR. Do not claim
   framework validation is an application test, or fabricate successful command results.
 - Perform adversarial review after tests, resolve findings, and rerun affected checks.
-  `/code_review` provides the review-only role/challenge/synthesis process; during forge
+  `/code-review` provides the review-only role/challenge/synthesis process; during forge
   use it for ASSAY, then return to forge to fix findings and rerun affected checks.
   If supported and authorized, use an independent reviewer; otherwise do an explicit
   second review pass and label it self-review. Never claim independence falsely.
@@ -36,7 +36,7 @@ Record assumptions as AGENT decisions; never attribute them to the user.
   Read CI plus PR conversation, reviews, and inline comments; fix failures and findings.
 - `/ship-it` owns the authorized PR feedback/CI/merge lifecycle; its shared playbook is
   docs/ship-it/iteration-playbook.md. Explicit --no-merge survives resume. Installing the
-  skill or invoking forge/code_review alone does not authorize merge.
+  skill or invoking forge/code-review alone does not authorize merge.
 - Do not merge, publish a release, or enable destructive behavior without user authority.
   Missing credentials or necessary product decisions are concrete blockers to report.
 
@@ -44,7 +44,7 @@ Record assumptions as AGENT decisions; never attribute them to the user.
 
 Run `python3 scripts/forge.py check` and
 `python3 -m unittest discover -s tests -v` after changing the framework. Keep matching
-forge, code_review and ship-it skill entry points identical across agent integrations. Use only Python's standard library
+forge, code-review and ship-it skill entry points identical across agent integrations. Use only Python's standard library
 for framework tooling unless a design justifies a new dependency. Forge's shared prompts
 and protocols live in docs/forge/; bind prompts with scripts/forge.py render-prompt and
 validate references/contracts with scripts/forge.py check. The application uses

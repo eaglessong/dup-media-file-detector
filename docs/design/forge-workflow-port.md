@@ -6,7 +6,7 @@
 
 The existing forge entry points are a short router to docs/WORKFLOW.md. They lack the
 source workflow's concrete role prompts, phase prerequisites and supporting protocols.
-The project now has a Python/POSIX/SQLite media CLI and a standalone code_review skill.
+The project now has a Python/POSIX/SQLite media CLI and a standalone code-review skill.
 
 ## Requirements and non-goals
 
@@ -16,7 +16,7 @@ The project now has a Python/POSIX/SQLite media CLI and a standalone code_review
   distinct instruments, receipts, honest uncertainty and no recursive delegation.
 - R3: Supply applicable decision, test-data, capture, shortcut-resistance and knowledge-map
   references plus a shared prompt/evidence contract.
-- R4: Integrate code_review into ASSAY without recursively invoking forge or duplicating
+- R4: Integrate code-review into ASSAY without recursively invoking forge or duplicating
   a second full panel. Supply test-realism verdicts and scoped scale/security audits.
 - R5: Keep Codex/Claude entry points identical, validate prompt/resource completeness and
   binding before dispatch, and add tests proving broken inputs/resources fail validation.
@@ -37,7 +37,7 @@ are resolved to the target checkout so scratch-file location does not break them
 
 Both skill entry points route to docs/WORKFLOW.md and its prompt/protocol references.
 LIGHT combines reconnaissance instruments in one role pass plus a premise challenge;
-FULL separates five scouts. ASSAY uses code_review as its synthesis and adversarial process,
+FULL separates five scouts. ASSAY uses code-review as its synthesis and adversarial process,
 feeding applicable forge seat reports rather than launching a duplicate panel. In clients
 without delegation, perform explicitly labelled sequential role passes. The rendering CLI
 binds role-specific JSON context into prompts, refusing missing/unknown/empty inputs and

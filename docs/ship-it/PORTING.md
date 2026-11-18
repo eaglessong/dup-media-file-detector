@@ -6,7 +6,7 @@ This port keeps preflight, complete feedback/CI snapshots, triage-before-fix, ve
 push, bounded attempts, fresh final gates, head-pinned merge and post-merge confirmation.
 
 Shared materials live under docs/ship-it; Codex/Claude skill entry points are mirrored.
-Forge STAMP supplies creation/review when no PR exists. code_review stays local and
+Forge STAMP supplies creation/review when no PR exists. code-review stays local and
 review-only; ship-it owns separately authorized replies, fixes, pushes and final merge.
 
 Adaptations:

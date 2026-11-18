@@ -40,7 +40,7 @@ when current user intent already authorizes the target action.
 Use one coordinating writer and ignored per-PR state under `.agent-local/ship-it/`.
 The state helper performs atomic, locked local bookkeeping; it never queries GitHub,
 runs tests, certifies readiness or performs a merge. Follow the playbook for actual
-fresh evidence, triage, repair, bounded waits and final gates. Use code_review for
+fresh evidence, triage, repair, bounded waits and final gates. Use code-review for
 review and forge for design-level changes; neither recursively launches ship-it.
 
 Keep working in the current task through checks/repairs until merged, merge_ready

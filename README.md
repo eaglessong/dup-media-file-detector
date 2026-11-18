@@ -78,13 +78,13 @@ For a new feature: `python3 scripts/forge.py new-feature my-feature`.
 
 ## Local code review
 
-The `/code_review` skill adapts Cowork's specialist reviewers, Devil's Advocate pass,
+The `/code-review` skill adapts Cowork's specialist reviewers, Devil's Advocate pass,
 and evidence-grounded synthesis to this project. In a skill-enabled coding agent:
 
 ```text
-/code_review
-/code_review 12
-/code_review full review
+/code-review
+/code-review 12
+/code-review full review
 ```
 
 With no argument it reviews staged/unstaged changes and relevant untracked files.
@@ -93,9 +93,8 @@ It also accepts a branch, GitHub PR URL, or patch file. Reports go to the gitign
 execute tests, publish comments, push, or merge. Full reviews use parallel reviewers
 when supported/permitted, or explicitly labelled sequential role passes otherwise.
 If the command is not discovered, ask the agent to follow
-`.agents/skills/code_review/SKILL.md`. Client skill discovery may require reopening
-the repository/session. The underscore in `code_review` intentionally matches the
-requested command name; it differs from the skill-creator's hyphen naming convention.
+`.agents/skills/code-review/SKILL.md`. Client skill discovery may require reopening
+the repository/session. The skill is named `code-review` in both agent integrations.
 
 See the [review roles](docs/code-review/roles.md) and
 [evidence/report contract](docs/code-review/report.md). During forge, this supplies
@@ -112,7 +111,7 @@ Use a feature brief or design as input:
 ```
 
 The agent explores, clarifies consequential choices, designs, implements, verifies,
-reviews using code_review, and delivers a PR. It maintains your artifacts and stops
+reviews using code-review, and delivers a PR. It maintains your artifacts and stops
 before merging unless you authorize that merge. Parallel roles are used when supported;
 sequential passes are labelled honestly. Synthetic filesystem data replaces mandatory
 production telemetry, and captures apply only to actual parser/platform/external-format
@@ -138,7 +137,7 @@ With no number it uses the current branch's PR, or follows forge STAMP to create
 if needed. Explicit shipping intent authorizes merging that identified PR after fresh
 checks and feedback gates. `--no-merge` performs preparation, fixes, verification and
 necessary PR replies but withholds merge; blockers remain blockers. Neither command
-publishes a release or changes branch rules. Forge/code_review alone do not authorize merge.
+publishes a release or changes branch rules. Forge/code-review alone do not authorize merge.
 
 Shared instructions are in [docs/ship-it](docs/ship-it/iteration-playbook.md), with paired
 Codex/Claude skill entry points. Runs keep ignored state under `.agent-local/ship-it/`,

@@ -4,7 +4,7 @@
 
 ## Problem and current state
 
-Forge creates and verifies a PR, and code_review supplies local review, but no dedicated
+Forge creates and verifies a PR, and code-review supplies local review, but no dedicated
 resumable skill owns CI/comment repair through a head-pinned merge. Cowork ship-it has
 that lifecycle plus organization-specific policies that do not apply here.
 
@@ -20,7 +20,7 @@ that lifecycle plus organization-specific policies that do not apply here.
   resumable and bounded by rounds/repeated failure, without cron or hosted workers.
 - R6: Verify actual merged state/commit, update a clean local checkout safely and report
   unresolved work. Explicit /ship-it invocation authorizes that target's PR lifecycle;
-  merely installing the skill or invoking forge/code_review does not authorize merge.
+  merely installing the skill or invoking forge/code-review does not authorize merge.
 
 Non-goals: releases/deployment, branch protection changes, fork execution, automatic
 conflict/design rework, hidden recurring automation or a hosted merge bot.
@@ -32,7 +32,7 @@ brings private build/cron/review exceptions and admin merges. Adapt the lifecycl
 a skill plus shared playbook, with a small standard-library helper for atomic local
 state, sticky no-merge, attempt bounds and SHA invalidation. The helper does not call
 GitHub, execute fixes or certify merge eligibility; the agent evaluates fresh evidence.
-Use existing forge/code_review and actual project CI rather than duplicate their logic.
+Use existing forge/code-review and actual project CI rather than duplicate their logic.
 
 ## Safety and authorization
 
