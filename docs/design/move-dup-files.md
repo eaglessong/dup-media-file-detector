@@ -1,11 +1,14 @@
 # Relocate exact duplicate media files
 
-**Status:** Implemented — final verification and review in progress
+**Status:** Implemented, verified and agent-reviewed — PR #8 remains unmerged
 **Date:** 2026-11-18
 **Brief:** [move-dup-files](../../work-items/move-dup-files/brief.md)
 **Decisions:** [ADR-003](../decisions/003-move-dup-files.md)
 
 ## Problem and current state
+
+Baseline source receipts in this section refer to cac461f, before relocation changes.
+Current execution evidence and test mapping are in the work-item evidence.
 
 The existing CLI (`dup_media/__main__.py:16–32`) scans one root and emits a read-only
 inventory. `Scan.run()` uses size/SHA candidates and byte comparison, then final file
@@ -321,3 +324,16 @@ lock instead of attempting a conflicting independent flock. Journal includes ori
 source/keeper signatures, SHA-256 candidate receipt (not standalone duplicate proof),
 required metadata, staging/final identities and stable error codes. Source-removal gaps
 are tested both by post-unlink journal failure and actual SIGKILL before the receipt.
+
+
+### Final implementation evidence
+
+All39 new behavioral tests (31 integration,8 E2E) pass in privileged Linux3.11/3.13 CI;
+legacy suites run separately as non-root. See work-item evidence for precise skip/run
+boundaries. SQLite native temp files are pinned to external scan scratch, verified by
+PRAGMA and restored on exit; concurrent embedded SQLite users in the same process are
+outside the single-writer CLI contract. Ext4 project IDs/xflags/extent policies are
+explicitly queried and unsupported values rejected. Tests cover a substantial sort
+and observed tree nonmutation, not direct physical-spill observation. Independent-agent
+source challenge found no remaining grounded blocker; no human review or power-loss
+certification is implied. PR#8 remains unmerged.

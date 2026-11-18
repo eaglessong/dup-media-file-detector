@@ -2,19 +2,67 @@
   "schema_version": 1,
   "feature": "move-dup-files",
   "kind": "application",
-  "phase": "assay",
+  "phase": "complete",
   "design": "docs/design/move-dup-files.md",
   "blockers": [],
   "verification": [
     {
       "scope": "framework",
+      "outcome": "passed",
       "command": "python3 scripts/forge.py check",
+      "exit_code": 0
+    },
+    {
+      "scope": "framework",
+      "outcome": "passed",
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit_code": 0
+    },
+    {
+      "scope": "application",
+      "outcome": "passed",
+      "command": "python3 -m compileall -q dup_media",
+      "exit_code": 0
+    },
+    {
+      "scope": "application",
+      "outcome": "passed",
+      "command": "python3 -m dup_media --help",
+      "exit_code": 0
+    },
+    {
+      "scope": "application",
+      "outcome": "passed",
+      "command": "python3 -m unittest discover -s tests -p test_application.py -v",
+      "exit_code": 0
+    },
+    {
+      "scope": "integration",
+      "outcome": "passed",
+      "command": "python3 -m unittest discover -s tests/integration -v",
+      "exit_code": 0
+    },
+    {
+      "scope": "e2e",
+      "outcome": "passed",
+      "command": "python3 -m unittest discover -s tests/e2e -v",
+      "exit_code": 0
+    },
+    {
+      "scope": "integration",
+      "command": "sudo env REQUIRE_MOVE_TESTS=1 MOVE_CROSS_ROOT=\"$cross_root\" \"$python_path\" -m unittest discover -s tests/integration -p 'test_relocate*.py' -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "e2e",
+      "command": "sudo env REQUIRE_MOVE_TESTS=1 MOVE_CROSS_ROOT=\"$cross_root\" \"$python_path\" -m unittest discover -s tests/e2e -p 'test_relocate*.py' -v",
       "exit_code": 0,
       "outcome": "passed"
     }
   ],
   "review": {
-    "mode": "pending",
+    "mode": "independent",
     "evidence": "work-items/move-dup-files/evidence.md",
     "unresolved_blocking_findings": []
   }

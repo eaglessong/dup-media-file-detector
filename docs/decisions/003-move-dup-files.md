@@ -1,6 +1,6 @@
 # ADR-003: Explicit relocation of exact duplicate paths
 
-**Status:** Accepted behavior; proposed implementation mechanisms
+**Status:** Accepted — implemented with capability restrictions below
 **Decided by:** USER (requirements/choices) and AGENT (technical decisions below)
 **Date:** 2026-11-18
 **Feature:** move-dup-files
@@ -101,3 +101,13 @@ avoids an unestablished tmpfs flag-visibility premise. Cross-volume remains supp
 and tested on two real ext4 filesystems, not mocked EXDEV. No USER requirement is relaxed.
 Journal now retains original signatures/digest and stable errors; observed existing-root
 lock and scratch-overlap defects are fixed and regression-tested before delivery.
+
+
+### Final mechanism refinements (AGENT)
+
+Before any scratch creation, reject physical mount-root aliases placing scratch inside
+either tree. Pass selected scratch explicitly to Scan and pin/verify SQLite native
+spill storage there, restoring its prior process-global setting on exit. This is a
+single-writer CLI contract; concurrent embedded scans are unsupported. Query ext4
+FSGETXATTR as well as GETFLAGS/statx and reject unsupported project IDs/xflags/hints.
+All capability/storage restrictions and creation-time exception are reflected in docs.

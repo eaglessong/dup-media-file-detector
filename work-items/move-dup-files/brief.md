@@ -1,6 +1,6 @@
 # Move duplicate media files
 
-**Status:** Implementation under verification/review — PR #8 remains unmerged
+**Status:** Implemented, verified and agent-reviewed — PR #8 remains unmerged
 
 ## Goal and user requirements
 
