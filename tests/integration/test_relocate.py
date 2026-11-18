@@ -1,0 +1,184 @@
+import errno
+import os
+from pathlib import Path
+import signal
+import sqlite3
+import subprocess
+import sys
+import tempfile
+from unittest.mock import patch
+import unittest
+
+from dup_media.move_fs import Location, MoveError, metadata
+from dup_media.relocate import Relocation
+from dup_media.scan import Scan
+from tests.move_fixtures import MoveFixture, tree
+
+
+class RootSafety(unittest.TestCase):
+    def test_overlap_missing_child_and_symlink_rejected_without_writes(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t).resolve()
+            source = root / 'source'
+            source.mkdir()
+            for dest in [source, source / 'missing/child', root]:
+                with self.assertRaises((ValueError, OSError)):
+                    Relocation(source, dest)
+                self.assertEqual(list(source.iterdir()), [])
+            (root / 'alias').symlink_to(source, target_is_directory=True)
+            with self.assertRaises(OSError):
+                Relocation(source, root / 'alias' / 'dest')
+            # Prefix lookalike is not a descendant.
+            Relocation(source, root / 'source-backup')
+
+
+class TransferIntegration(MoveFixture):
+    def test_exact_move_preserves_bytes_metadata_and_unique_files(self):
+        before = tree(self.source)
+        victim = self.source / 'nested/b.jpg'
+        victim.chmod(0o640)
+        os.utime(victim, ns=(1234567890123456789, 1234567890123456789))
+        os.setxattr(victim, 'user.original', b'fixture')
+        expected = tree(self.source)['nested/b.jpg']
+        code, records = self.run_move()
+        self.assertEqual(code, 0, records)
+        self.assertEqual(set(tree(self.source)), {'a.jpg', 'unique.wav', 'ignored.txt'})
+        self.assertEqual(tree(self.source)['a.jpg'], before['a.jpg'])
+        self.assertEqual(tree(self.dest), {'nested/b.jpg': expected})
+        self.assertEqual(os.getxattr(self.dest / 'nested/b.jpg', 'user.original'), b'fixture')
+        self.assertEqual(records[-1]['moved'], 1)
+        with sqlite3.connect(self.journal / 'journal.sqlite') as db:
+            self.assertEqual(db.execute('SELECT path,state FROM items').fetchall(), [('nested/b.jpg', 'source_removed')])
+
+    def test_dry_run_and_empty_plan_do_not_create_roots_or_journal(self):
+        before = tree(self.source)
+        code, records = self.run_move(dry=True)
+        self.assertEqual(code, 0, records)
+        self.assertEqual(records[1]['source'], 'nested/b.jpg')
+        self.assertEqual(records[1]['keeper'], 'a.jpg')
+        self.assertEqual(records[-1]['moved'], 0)
+        self.assertEqual(tree(self.source), before)
+        self.assertFalse(self.dest.exists())
+        self.assertFalse(self.journal.exists())
+        (self.source / 'nested/b.jpg').unlink()
+        code, records = self.run_move()
+        self.assertEqual(code, 0, records)
+        self.assertEqual(records[-1]['planned'], 0)
+        self.assertFalse(self.dest.exists())
+        self.assertFalse(self.journal.exists())
+
+    def test_hardlinked_three_member_group_keeps_first_path(self):
+        os.link(self.source / 'a.jpg', self.source / 'c.jpg')
+        os.link(self.source / 'a.jpg', self.source / 'd.jpg')
+        code, records = self.run_move()
+        self.assertEqual(code, 0, records)
+        self.assertEqual(records[-1]['moved'], 3)
+        self.assertEqual(set(tree(self.source)), {'a.jpg', 'unique.wav', 'ignored.txt'})
+        self.assertEqual(set(tree(self.dest)), {'c.jpg', 'd.jpg', 'nested/b.jpg'})
+        self.assertTrue(all(v[0] == b'a' * 100 for v in tree(self.dest).values()))
+
+    def test_zero_bytes_and_unicode_group(self):
+        for name in ['0.JPG', '雪.mp4']:
+            (self.source / name).touch()
+        code, records = self.run_move()
+        self.assertEqual(code, 0, records)
+        self.assertTrue((self.source / '0.JPG').exists())
+        self.assertFalse((self.source / '雪.mp4').exists())
+        self.assertEqual((self.dest / '雪.mp4').read_bytes(), b'')
+
+    def test_preexisting_identical_file_directory_and_link_never_overwritten(self):
+        (self.dest / 'nested').mkdir(parents=True)
+        p = self.dest / 'nested/b.jpg'
+        before = tree(self.source)
+        for kind in ['file', 'directory', 'link']:
+            if kind == 'file': p.write_bytes(b'a' * 100)
+            elif kind == 'directory': p.mkdir()
+            else: p.symlink_to('absent')
+            code, records = self.run_move()
+            self.assertEqual(code, 1, records)
+            self.assertEqual(records[-1]['moved'], 0)
+            self.assertEqual(tree(self.source), before)
+            self.assertFalse(self.journal.exists())
+            if kind == 'directory': p.rmdir()
+            else: p.unlink()
+
+    def test_late_destination_conflict_preserves_both_originals(self):
+        def collision(stage, path):
+            if stage == 'staged_verified':
+                (self.dest / path).write_bytes(b'other writer')
+        with patch('dup_media.relocate.checkpoint', collision):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'other writer')
+        self.assertEqual(records[-1]['moved'], 0)
+
+    def test_copy_failure_and_journal_failure_never_unlink_source(self):
+        before = tree(self.source)
+        with patch('dup_media.relocate.apply_metadata', side_effect=OSError(errno.ENOSPC, 'synthetic disk full')):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual(tree(self.source), before)
+        self.assertFalse((self.dest / 'nested/b.jpg').exists())
+        self.journal = self.base / 'second-operation'
+        with patch('dup_media.move_journal.Journal.state', side_effect=sqlite3.OperationalError('synthetic journal full')):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual(tree(self.source), before)
+
+    def test_unlink_failure_keeps_verified_destination_and_source(self):
+        original = os.unlink
+        def fail(path, *args, **kwargs):
+            if path == 'b.jpg':
+                raise PermissionError('synthetic unlink failure')
+            return original(path, *args, **kwargs)
+        with patch('dup_media.relocate.os.unlink', fail):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        with sqlite3.connect(self.journal / 'journal.sqlite') as db:
+            self.assertEqual(db.execute('SELECT state FROM items').fetchone()[0], 'destination_verified')
+
+    def test_keeper_change_and_source_symlink_replacement_stop_before_removal(self):
+        def mutate(stage, path):
+            if stage == 'published':
+                (self.source / 'a.jpg').write_bytes(b'x' * 100)
+        with patch('dup_media.relocate.checkpoint', mutate):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
+
+    def test_trusted_attributes_and_flags_are_not_silently_discarded(self):
+        p = self.source / 'nested/b.jpg'
+        os.setxattr(p, 'trusted.fixture', b'must not be hidden')
+        code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertIn('unsupported_metadata', str(records))
+        self.assertFalse(self.dest.exists())
+        self.assertFalse(self.journal.exists())
+
+    def test_detected_change_and_hash_collision_do_not_create_false_group(self):
+        original = Scan.enumerate
+        def mutate(scan):
+            original(scan)
+            (self.source / 'unique.wav').write_bytes(b'changed')
+        with patch.object(Scan, 'enumerate', mutate):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertFalse(self.dest.exists())
+        (self.source / 'nested/b.jpg').write_bytes(b'b' * 100)
+        with patch.object(Scan, 'digest', return_value='forced-collision'):
+            code, records = self.run_move()
+        self.assertEqual(code, 0, records)
+        self.assertEqual(records[-1]['planned'], 0)
+
+    def test_destination_symlink_parent_is_rejected(self):
+        outside = self.base / 'outside'
+        outside.mkdir()
+        self.dest.mkdir()
+        (self.dest / 'nested').symlink_to(outside, target_is_directory=True)
+        code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual(list(outside.iterdir()), [])
+        self.assertTrue((self.source / 'nested/b.jpg').exists())

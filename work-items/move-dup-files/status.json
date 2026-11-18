@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "feature": "move-dup-files",
+  "kind": "application",
+  "phase": "forge",
+  "design": "docs/design/move-dup-files.md",
+  "blockers": [],
+  "verification": [
+    {
+      "scope": "framework",
+      "command": "python3 scripts/forge.py check",
+      "exit_code": 0,
+      "outcome": "passed"
+    }
+  ],
+  "review": {
+    "mode": "pending",
+    "evidence": "work-items/move-dup-files/evidence.md",
+    "unresolved_blocking_findings": []
+  }
+}
