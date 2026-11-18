@@ -119,10 +119,10 @@ class Relocation:
         ''')
         # Freeze every keeper before inserting victims; no digest/inode deduplication.
         for group, keeper in scan.db.execute('SELECT group_id,MIN(path) FROM files WHERE valid=1 AND group_id IS NOT NULL GROUP BY group_id HAVING COUNT(*)>1 ORDER BY MIN(path)'):
-            with scan.source(keeper) as stream:
+            with checked_source(scan, keeper) as stream:
                 metadata(stream.fileno())
             for path, size in scan.db.execute('SELECT path,size FROM files WHERE group_id=? AND valid=1 AND path<>? ORDER BY path', (group, keeper)):
-                with scan.source(path) as stream:
+                with checked_source(scan, path) as stream:
                     meta = metadata(stream.fileno())
                 scan.db.execute('INSERT INTO move_plan VALUES (?,?,?,?)', (path, keeper, size, json.dumps(meta, sort_keys=True)))
         nearest = self.destination.nearest()
@@ -185,6 +185,12 @@ class Relocation:
 
     def transfer(self, scan, journal, path, keeper, encoded):
         expected = json.loads(encoded)
+        pinned = self.source.open()
+        try:
+            if identity(pinned) != identity(scan.root_fd):
+                raise MoveError('root_changed', path)
+        finally:
+            os.close(pinned)
         # Keep descriptors open for both exact-proof participants through source unlink.
         with checked_source(scan, keeper) as kept, checked_source(scan, path) as source:
             if metadata(source.fileno()) != expected or not equal_streams(kept, source):
@@ -273,6 +279,12 @@ class Relocation:
         current = '.'
         journal = None
         with Scan(self.source.path, extensions) as scan:
+            pinned = self.source.open()
+            try:
+                if identity(pinned) != identity(scan.root_fd):
+                    raise MoveError('root_changed')
+            finally:
+                os.close(pinned)
             source_lock = dest_lock = None
             try:
                 if not dry_run:
@@ -285,6 +297,9 @@ class Relocation:
                     for path, code in scan.db.execute('SELECT DISTINCT path,code FROM errors ORDER BY path,code'):
                         emit(output, type='error', source=path, code=code)
                     raise MoveError('incomplete_scan')
+                for dev, ino in self.destination.pins[1:]:
+                    if scan.db.execute('SELECT 1 FROM dirs WHERE dev=? AND ino=?', (str(dev), str(ino))).fetchone():
+                        raise MoveError('root_alias')
                 filesystem(scan.root_fd)
                 self.preflight(scan)
                 if self.journal_path:

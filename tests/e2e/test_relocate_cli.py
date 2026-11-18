@@ -75,3 +75,36 @@ class MoveCli(MoveFixture):
         p = self.cli(extra=['--extensions', 'wav'])
         self.assertEqual(p.returncode, 0, p.stderr + p.stdout)
         self.assertEqual(json.loads(p.stdout.splitlines()[-1])['planned'], 0)
+
+    def test_entrypoint_sigint_and_sigkill_at_durable_transfer_boundaries(self):
+        # Driver invokes shipped main/argparse; patch only the internal observation
+        # checkpoint to deliver a real OS signal at a deterministic filesystem stage.
+        for boundary, sig, expected in [('staged_verified', 'SIGINT', 130),
+                                         ('published', 'SIGKILL', -9)]:
+            with self.subTest(boundary=boundary):
+                driver = '''
+import os,signal
+from unittest.mock import patch
+from dup_media.__main__ import main
+import sys
+boundary,sig=sys.argv[1:3]
+del sys.argv[1:3]
+def checkpoint(stage,path):
+    if stage==boundary:
+        os.kill(os.getpid(),getattr(signal,sig))
+with patch('dup_media.relocate.checkpoint',checkpoint):
+    sys.exit(main())
+'''
+                args = ['--move-duplicates', str(self.source), '--destination', str(self.dest),
+                        '--journal', str(self.journal), '--exclusive-access']
+                p = subprocess.run([sys.executable, '-c', driver, boundary, sig, *args], cwd=REPO,
+                                   capture_output=True, text=True, timeout=30)
+                self.assertEqual(p.returncode, expected, p.stdout + p.stderr)
+                self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
+                self.assertEqual((self.source / 'a.jpg').read_bytes(), b'a' * 100)
+                with sqlite3.connect(self.journal / 'journal.sqlite') as db:
+                    self.assertEqual(db.execute('SELECT state FROM items').fetchone()[0], 'staged_verified')
+                self.assertNotIn('"complete": true', p.stdout)
+                # Preserve the first operation and choose fresh targets for second case.
+                self.dest = self.base / 'second-dest'
+                self.journal = self.base / 'second-journal'

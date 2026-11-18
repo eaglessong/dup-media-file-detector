@@ -182,3 +182,63 @@ class TransferIntegration(MoveFixture):
         self.assertEqual(code, 1)
         self.assertEqual(list(outside.iterdir()), [])
         self.assertTrue((self.source / 'nested/b.jpg').exists())
+
+    def test_source_symlink_replacement_does_not_remove_replacement(self):
+        def replace(stage, path):
+            if stage == 'before_unlink':
+                victim = self.source / path
+                victim.unlink()
+                victim.symlink_to('../unique.wav')
+        with patch('dup_media.relocate.checkpoint', replace):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertTrue((self.source / 'nested/b.jpg').is_symlink())
+        self.assertEqual((self.source / 'unique.wav').read_bytes(), b'u' * 50)
+        self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'a' * 100)
+
+    def test_real_acl_and_nodump_flags_block_without_mutation(self):
+        import array
+        import fcntl
+        import struct
+        victim = self.source / 'nested/b.jpg'
+        entries = [(1, 6, 0xffffffff), (2, 4, 12345), (4, 4, 0xffffffff),
+                   (16, 4, 0xffffffff), (32, 0, 0xffffffff)]
+        acl = struct.pack('<I', 2) + b''.join(struct.pack('<HHI', *e) for e in entries)
+        os.setxattr(victim, 'system.posix_acl_access', acl)
+        code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertIn('unsupported_metadata', str(records))
+        self.assertFalse(self.dest.exists())
+        os.removexattr(victim, 'system.posix_acl_access')
+        fd = os.open(victim, os.O_RDONLY)
+        try:
+            flags = array.array('I', [0])
+            fcntl.ioctl(fd, 0x80086601, flags, True)
+            original = flags[0]
+            flags[0] |= 0x40  # FS_NODUMP_FL
+            fcntl.ioctl(fd, 0x40086602, flags, True)
+            code, records = self.run_move()
+            self.assertEqual(code, 1)
+            self.assertIn('unsupported_inode', str(records))
+            self.assertFalse(self.dest.exists())
+        finally:
+            flags[0] = original
+            fcntl.ioctl(fd, 0x40086602, flags, True)
+            os.close(fd)
+
+    def test_no_replace_link_and_directory_sync_failures_retain_source(self):
+        before = tree(self.source)
+        with patch('dup_media.relocate.os.link', side_effect=OSError(errno.EOPNOTSUPP, 'synthetic publication unsupported')):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual(tree(self.source), before)
+        self.assertFalse((self.dest / 'nested/b.jpg').exists())
+
+    def test_inode_alias_held_on_second_filesystem(self):
+        with tempfile.TemporaryDirectory(dir='/dev/shm') as t:
+            self.dest = Path(t) / 'dest'
+            os.link(self.source / 'a.jpg', self.source / 'hard.jpg')
+            code, records = self.run_move()
+            self.assertEqual(code, 0, records)
+            self.assertEqual((self.dest / 'hard.jpg').read_bytes(), b'a' * 100)
+            self.assertEqual((self.source / 'a.jpg').read_bytes(), b'a' * 100)
