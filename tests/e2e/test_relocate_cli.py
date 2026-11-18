@@ -50,7 +50,7 @@ class MoveCli(MoveFixture):
         self.assertEqual(self.cli().returncode, 2)
 
     def test_real_cross_device_cli_move(self):
-        target = Path('/dev/shm')
+        target = Path(os.environ['MOVE_CROSS_ROOT'])
         self.assertTrue(target.is_dir(), 'CI must provide a second filesystem')
         self.assertNotEqual(target.stat().st_dev, self.source.stat().st_dev)
         with tempfile.TemporaryDirectory(dir=target) as t:
@@ -80,8 +80,12 @@ class MoveCli(MoveFixture):
         # Driver invokes shipped main/argparse; patch only the internal observation
         # checkpoint to deliver a real OS signal at a deterministic filesystem stage.
         for boundary, sig, expected in [('staged_verified', 'SIGINT', 130),
-                                         ('published', 'SIGKILL', -9)]:
+                                         ('published', 'SIGKILL', -9),
+                                         ('after_unlink', 'SIGKILL', -9),
+                                         ('source_removed', 'SIGKILL', -9)]:
             with self.subTest(boundary=boundary):
+                if not (self.source / 'nested/b.jpg').exists():
+                    (self.source / 'nested/b.jpg').write_bytes(b'a' * 100)
                 driver = '''
 import os,signal
 from unittest.mock import patch
@@ -100,14 +104,20 @@ with patch('dup_media.relocate.checkpoint',checkpoint):
                 p = subprocess.run([sys.executable, '-c', driver, boundary, sig, *args], cwd=REPO,
                                    capture_output=True, text=True, timeout=30)
                 self.assertEqual(p.returncode, expected, p.stdout + p.stderr)
-                self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
+                if boundary in ('source_removed', 'after_unlink'):
+                    self.assertFalse((self.source / 'nested/b.jpg').exists())
+                    self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'a' * 100)
+                else:
+                    self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
                 self.assertEqual((self.source / 'a.jpg').read_bytes(), b'a' * 100)
                 with sqlite3.connect(self.journal / 'journal.sqlite') as db:
-                    self.assertEqual(db.execute('SELECT state FROM items').fetchone()[0], 'staged_verified')
+                    self.assertEqual(db.execute('SELECT state FROM items').fetchone()[0],
+                                     'source_removed' if boundary == 'source_removed' else
+                                     'destination_verified' if boundary == 'after_unlink' else 'staged_verified')
                 self.assertNotIn('"complete": true', p.stdout)
                 # Preserve the first operation and choose fresh targets for second case.
-                self.dest = self.base / 'second-dest'
-                self.journal = self.base / 'second-journal'
+                self.dest = self.base / (boundary + '-next-dest')
+                self.journal = self.base / (boundary + '-next-journal')
 
     def test_non_root_cli_refuses_hidden_metadata_guarantee(self):
         if os.getuid() != 0:
@@ -124,3 +134,21 @@ with patch('dup_media.relocate.checkpoint',checkpoint):
         self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
         self.assertFalse(self.dest.exists())
         self.assertTrue((self.source / 'nested/b.jpg').exists())
+
+    def test_shipped_cli_rejects_scratch_within_destination(self):
+        self.dest.mkdir()
+        env = dict(os.environ, TMPDIR=str(self.dest))
+        args = [sys.executable, '-m', 'dup_media', '--move-duplicates', str(self.source),
+                '--destination', str(self.dest), '--dry-run']
+        before = tree(self.source)
+        p = subprocess.run(args, cwd=REPO, env=env, capture_output=True, text=True, timeout=30)
+        self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+        self.assertEqual(list(self.dest.iterdir()), [])
+        self.assertEqual(tree(self.source), before)
+
+    def test_shipped_cli_accepts_existing_empty_destination(self):
+        (self.dest / 'nested').mkdir(parents=True)
+        p = self.cli()
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+        self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertFalse((self.source / 'nested/b.jpg').exists())

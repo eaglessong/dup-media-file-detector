@@ -31,6 +31,18 @@ class RootSafety(unittest.TestCase):
             # Prefix lookalike is not a descendant.
             Relocation(source, root / 'source-backup')
 
+    def test_destination_containing_scratch_is_rejected_before_scan(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t).resolve()
+            source = root / 'source'
+            source.mkdir()
+            destination = root / 'dest'
+            destination.mkdir()
+            with patch('dup_media.relocate.tempfile.gettempdir', return_value=str(destination)):
+                with self.assertRaises(ValueError):
+                    Relocation(source, destination)
+            self.assertEqual(list(destination.iterdir()), [])
+
 
 class TransferIntegration(MoveFixture):
     def test_exact_move_preserves_bytes_metadata_and_unique_files(self):
@@ -113,7 +125,7 @@ class TransferIntegration(MoveFixture):
         self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'other writer')
         self.assertEqual(records[-1]['moved'], 0)
 
-    def test_copy_failure_and_journal_failure_never_unlink_source(self):
+    def test_metadata_failure_and_early_journal_failure_never_unlink_source(self):
         before = tree(self.source)
         with patch('dup_media.relocate.apply_metadata', side_effect=OSError(errno.ENOSPC, 'synthetic disk full')):
             code, records = self.run_move()
@@ -121,8 +133,9 @@ class TransferIntegration(MoveFixture):
         self.assertEqual(tree(self.source), before)
         self.assertFalse((self.dest / 'nested/b.jpg').exists())
         self.journal = self.base / 'second-operation'
-        with patch('dup_media.move_journal.Journal.state', side_effect=sqlite3.OperationalError('synthetic journal full')):
+        with patch('dup_media.move_journal.Journal.state', side_effect=sqlite3.OperationalError('synthetic journal full')) as fault:
             code, records = self.run_move()
+            fault.assert_called()
         self.assertEqual(code, 1)
         self.assertEqual(tree(self.source), before)
 
@@ -235,7 +248,7 @@ class TransferIntegration(MoveFixture):
         self.assertFalse((self.dest / 'nested/b.jpg').exists())
 
     def test_inode_alias_held_on_second_filesystem(self):
-        with tempfile.TemporaryDirectory(dir='/dev/shm') as t:
+        with tempfile.TemporaryDirectory(dir=os.environ['MOVE_CROSS_ROOT']) as t:
             self.dest = Path(t) / 'dest'
             os.link(self.source / 'a.jpg', self.source / 'hard.jpg')
             code, records = self.run_move()
@@ -320,3 +333,68 @@ class TransferIntegration(MoveFixture):
         self.assertEqual(code, 1)
         self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
         self.assertEqual((self.source / 'a.jpg').read_bytes(), b'a' * 100)
+
+    def test_existing_empty_destination_and_nested_parents_succeed(self):
+        (self.dest / 'nested').mkdir(parents=True)
+        code, records = self.run_move()
+        self.assertEqual(code, 0, records)
+        self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertFalse((self.source / 'nested/b.jpg').exists())
+
+    def test_unlink_to_journal_commit_gap_is_recoverable(self):
+        from dup_media.move_journal import Journal
+        original = Journal.state
+        def fail(journal, path, state, *args, **kwargs):
+            if state == 'source_removed':
+                raise sqlite3.OperationalError('synthetic commit failure after physical unlink')
+            return original(journal, path, state, *args, **kwargs)
+        with patch.object(Journal, 'state', fail):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertFalse((self.source / 'nested/b.jpg').exists())
+        self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertEqual((self.source / 'a.jpg').read_bytes(), b'a' * 100)
+        with sqlite3.connect(self.journal / 'journal.sqlite') as db:
+            state, source_sig, keeper_sig, digest = db.execute('SELECT state,source_signature,keeper_signature,sha256 FROM items').fetchone()
+            self.assertEqual(state, 'destination_verified')
+            self.assertTrue(source_sig and keeper_sig and len(digest) == 64)
+
+    def test_partial_batch_stops_after_second_victim_error(self):
+        for name in ['b.jpg', 'c.jpg', 'd.jpg']:
+            (self.source / name).write_bytes(b'a' * 100)
+        def fail(stage, path):
+            if stage == 'before_copy' and path == 'c.jpg':
+                raise OSError('synthetic second victim failure')
+        with patch('dup_media.relocate.checkpoint', fail):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual(records[-1]['moved'], 1)
+        self.assertFalse((self.source / 'b.jpg').exists())
+        self.assertEqual((self.dest / 'b.jpg').read_bytes(), b'a' * 100)
+        for name in ['a.jpg', 'c.jpg', 'd.jpg', 'nested/b.jpg']:
+            self.assertEqual((self.source / name).read_bytes(), b'a' * 100)
+        self.assertFalse((self.dest / 'c.jpg').exists())
+
+    def test_volatile_filesystem_is_not_an_archive_destination(self):
+        with tempfile.TemporaryDirectory(dir='/dev/shm') as t:
+            self.dest = Path(t) / 'dest'
+            code, records = self.run_move()
+            self.assertEqual(code, 1)
+            self.assertIn('unsupported_filesystem', str(records))
+            self.assertFalse(self.dest.exists())
+            self.assertTrue((self.source / 'nested/b.jpg').exists())
+
+    def test_copy_io_failure_retains_source_and_records_error(self):
+        def fail(source, target):
+            target.write(source.read(10))
+            target.flush()
+            raise OSError(errno.ENOSPC, 'synthetic write failure after partial staging copy')
+        before = tree(self.source)
+        with patch('dup_media.relocate.copy_stream', fail) as fault:
+            code, records = self.run_move()
+            fault.assert_called_once()
+        self.assertEqual(code, 1)
+        self.assertEqual(tree(self.source), before)
+        self.assertFalse((self.dest / 'nested/b.jpg').exists())
+        with sqlite3.connect(self.journal / 'journal.sqlite') as db:
+            self.assertEqual(db.execute('SELECT state,error FROM items').fetchone(), ('copying', 'io_failure'))

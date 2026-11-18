@@ -91,3 +91,13 @@ in relocation (including dry-run); scan-only stays portable. Creation time joins
 explicit inode/ctime/link-topology exceptions by USER choice. Validate storage primitives
 with disposable Linux CI fixtures; no Synology hardware claim. Supporting btrfs/NAS or
 additional attached metadata is a future adapter, not an implicit fallback.
+
+
+### ASSAY safety refinement (AGENT)
+
+Restrict initial relocation to64-bit Linux ext4. Earlier tmpfs support is superseded:
+volatile destination/journal cannot meet the durable archive intent; ext4-only also
+avoids an unestablished tmpfs flag-visibility premise. Cross-volume remains supported
+and tested on two real ext4 filesystems, not mocked EXDEV. No USER requirement is relaxed.
+Journal now retains original signatures/digest and stable errors; observed existing-root
+lock and scratch-overlap defects are fixed and regression-tested before delivery.

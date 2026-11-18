@@ -1,6 +1,6 @@
 # Relocate exact duplicate media files
 
-**Status:** Design delivered — application implementation not authorized
+**Status:** Implemented — final verification and review in progress
 **Date:** 2026-11-18
 **Brief:** [move-dup-files](../../work-items/move-dup-files/brief.md)
 **Decisions:** [ADR-003](../decisions/003-move-dup-files.md)
@@ -15,8 +15,9 @@ paths/storage identity but lacks enough validation state for destructive reuse
 (`:266–289`). No relocation implementation or move tests exist in inspected source.
 
 This design adds an explicit relocation operation while retaining the current scanner
-as read-only. This delivery creates artifacts only. No command below exists yet and
-no original file may be moved under this design-only request.
+as read-only. The original delivery was design only. USER subsequently authorized implementation;
+commands below now describe the explicit relocation mode. No real-library run or merge
+is requested.
 
 ## Requirements and non-goals
 
@@ -86,7 +87,7 @@ snapshot isolation, hostile mount changes, releases or a new NAS support certifi
 
 ## Architecture and interfaces
 
-Proposed syntax (future; not implemented):
+Relocation syntax:
 
 ```sh
 python3 -m dup_media --move-duplicates SOURCE --destination DEST --dry-run
@@ -271,7 +272,7 @@ do not relax USER preservation requirements.
 
 ## Delivery, rollout and decisions
 
-Stop at design-delivered. Implement only upon a later request. Read [ADR-003](../decisions/003-move-dup-files.md)
+The design-only delivery ended at design-delivered. Implementation was subsequently authorized. Read [ADR-003](../decisions/003-move-dup-files.md)
 on resumption, recheck base/source and early filesystem probes, then add new tests and
 future CLI/docs. Existing scan inventory schema1 and summary remain unchanged. Full
 forge implementation requires application checks, real integration, shipped CLI E2E,
@@ -285,7 +286,7 @@ fsync and real cross-device verification must be demonstrated on each supported 
 No ordinary live-filesystem implementation here can defeat arbitrary concurrent writers;
 exclusive trees are a required operational precondition. Recovery is deliberately manual
 and evidence-driven for v1. The accepted request permits designing future source-path
-removal only after relocation; it authorizes no present mutation or implementation.
+removal only after relocation; the subsequent implementation request authorizes code/tests/PR delivery, not a real-library run.
 
 ## Implementation contract refinement — 2026-11-18
 
@@ -305,3 +306,18 @@ dry-run needs no acknowledgement. Source/destination directory locks additionall
 exclude cooperative relocators. Journal parent must already exist; journal itself must
 be new. Staging names are random reserved operation names; existing files are never
 removed as cleanup unless their recorded inode matches this operation.
+
+
+### ASSAY refinements
+
+Initial tmpfs adapter support is withdrawn: volatile storage cannot satisfy archive/
+journal durability and statx alone does not establish full tmpfs flag visibility. Current
+execution/dry-run supports64-bit Linux ext4 only. CI provisions a second real ext4
+filesystem in a loop-mounted image; different st_dev is asserted before cross-volume
+E2E. `/dev/shm` is now an explicit refusal fixture. No btrfs/NAS support is claimed.
+Destination must not contain actual/resolved default scratch storage; reject before
+Scan creation, including dry-run. Existing destination roots reuse the already-held
+lock instead of attempting a conflicting independent flock. Journal includes original
+source/keeper signatures, SHA-256 candidate receipt (not standalone duplicate proof),
+required metadata, staging/final identities and stable error codes. Source-removal gaps
+are tested both by post-unlink journal failure and actual SIGKILL before the receipt.

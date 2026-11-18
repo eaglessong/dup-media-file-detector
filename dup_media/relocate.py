@@ -4,6 +4,7 @@ import json
 import os
 import sqlite3
 import stat
+import tempfile
 import unicodedata
 import uuid
 from contextlib import contextmanager
@@ -17,6 +18,13 @@ from .move_journal import Journal
 def emit(output, **record):
     output.write(json.dumps(record, ensure_ascii=True) + '\n')
     output.flush()  # A broken consumer must be observed before any more removals.
+
+
+def copy_stream(source, target):
+    source.seek(0)
+    while block := source.read(CHUNK):
+        target.write(block)
+    target.flush()
 
 
 def equal_streams(left, right):
@@ -61,6 +69,12 @@ class Relocation:
     def __init__(self, source, destination, journal=None):
         self.source = Location(source)
         self.destination = Location(destination)
+        scratch = os.path.realpath(tempfile.gettempdir())
+        scratch_location = Location(scratch)
+        if (os.path.commonpath([scratch, self.destination.path]) == self.destination.path
+                or (self.destination.existing == len(self.destination.parts)
+                    and self.destination.pins[-1] in scratch_location.pins)):
+            raise ValueError('scratch directory is inside destination')
         if self.source.existing != len(self.source.parts) or overlap(self.source, self.destination):
             raise ValueError('unsafe roots')
         self.journal_path = absolute(journal) if journal else None
@@ -205,10 +219,7 @@ class Relocation:
                     stage_id = identity(fd)
                     journal.state(path, 'copying', stage=stage, info=stage_id)
                     with os.fdopen(os.dup(fd), 'r+b') as target:
-                        source.seek(0)
-                        while block := source.read(CHUNK):
-                            target.write(block)
-                        target.flush()
+                        copy_stream(source, target)
                         if not equal_streams(source, target) or not equal_streams(kept, target):
                             raise MoveError('copy_verification_failed', path)
                     apply_metadata(fd, expected)
@@ -267,6 +278,7 @@ class Relocation:
                                             os.stat(name, dir_fd=parent, follow_symlinks=False).st_ino):
                             raise MoveError('destination_changed', path)
                         os.unlink(leaf, dir_fd=source_parent)
+                        checkpoint('after_unlink', path)
                         os.fsync(source_parent)
                     finally:
                         os.close(source_parent)
@@ -332,9 +344,10 @@ class Relocation:
                 if not dry_run and count:
                     dest_fd = self.destination.open(create=True)
                     try:
-                        fcntl.flock(dest_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                        final_dest_lock = os.dup(dest_fd)
-                        journal = Journal(self.journal_path, scan.root_fd, dest_fd, self.rows(scan))
+                        if identity(dest_fd) != identity(dest_lock):
+                            fcntl.flock(dest_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                            final_dest_lock = os.dup(dest_fd)
+                        journal = Journal(self.journal_path, scan.root_fd, dest_fd, self.rows(scan), scan.db)
                     finally:
                         os.close(dest_fd)
                 for path, keeper, size, meta in self.rows(scan):
@@ -353,6 +366,11 @@ class Relocation:
                 errors += 1
                 code = getattr(exc, 'code', 'io_failure')
                 path = getattr(exc, 'path', current)
+                if journal:
+                    try:
+                        journal.error(current, code)
+                    except (OSError, sqlite3.Error):
+                        pass  # Existing durable transition remains; never remove more sources.
                 emit(output, type='error', source=path, code=code)
             finally:
                 if journal:

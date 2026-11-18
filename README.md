@@ -174,7 +174,7 @@ See [sweep protocol](docs/patrol/sweep.md). Shared materials stay under docs/.
 ## Relocate duplicate media
 
 Relocation is an explicit mode. Ordinary `python3 -m dup_media ROOT` remains read-only.
-The initial relocation adapter supports **Linux ext4 and tmpfs** with effective root
+The initial relocation adapter supports **64-bit Linux ext4** with effective root
 and CHOWN, DAC_OVERRIDE, FOWNER and SYS_ADMIN capabilities. It refuses unsupported
 filesystems/platforms and metadata; this does not certify Synology/btrfs support.
 Run first on disposable fixtures, then preview your intended selection:

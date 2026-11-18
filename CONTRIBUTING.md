@@ -55,7 +55,7 @@ live reviews. Keep both skill entrypoints mirrored and run framework checks/test
 Relocation tests add privileged Linux metadata/namespace and real cross-device cases.
 The application workflow runs ordinary suites as the runner user, then invokes only
 relocation tests under sudo with `REQUIRE_MOVE_TESTS=1` (missing prerequisites fail,
-never skip). ext4 scratch plus `/dev/shm` tmpfs must have distinct device IDs. Tests use
+never skip). ext4 scratch plus a second loop-mounted ext4 filesystem must have distinct device IDs. Tests use
 only new synthetic temporary trees; bind mounts are unmounted in finally blocks.
 A Python3.13 CI step runs `sudo python3 -m scripts.probe_move` for bounded 10,000-file
 planning and 16-MiB transfer measurements. macOS explicitly skips privileged tests;

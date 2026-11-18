@@ -7,7 +7,7 @@ from .move_fs import Location, MoveError, identity
 
 
 class Journal:
-    def __init__(self, path, source, destination, plan):
+    def __init__(self, path, source, destination, plan, index):
         parent = Location(os.path.dirname(path))
         fd = parent.open()
         self.db = None
@@ -22,13 +22,17 @@ class Journal:
                 PRAGMA synchronous=FULL;
                 CREATE TABLE roots(kind TEXT,dev TEXT,ino TEXT);
                 CREATE TABLE items(path TEXT PRIMARY KEY,keeper TEXT,size INTEGER,
-                    metadata TEXT,state TEXT,stage TEXT,dev TEXT,ino TEXT,error TEXT);
+                    metadata TEXT,state TEXT,stage TEXT,dev TEXT,ino TEXT,error TEXT,
+                    source_signature TEXT,keeper_signature TEXT,sha256 TEXT);
             ''')
             for kind, rootfd in [('source', source), ('destination', destination)]:
                 self.db.execute('INSERT INTO roots VALUES (?,?,?)', (kind, *map(str, identity(rootfd))))
             for path, keeper, size, meta in plan:
-                self.db.execute('INSERT INTO items(path,keeper,size,metadata,state) VALUES (?,?,?,?,?)',
-                                (path, keeper, size, meta, 'planned'))
+                def signature_for(relative):
+                    return index.execute('SELECT dev,ino,size,mtime,ctime,digest FROM files WHERE path=?', (relative,)).fetchone()
+                victim, kept = signature_for(path), signature_for(keeper)
+                self.db.execute('INSERT INTO items(path,keeper,size,metadata,state,source_signature,keeper_signature,sha256) VALUES (?,?,?,?,?,?,?,?)',
+                                (path, keeper, size, meta, 'planned', json.dumps(victim[:5]), json.dumps(kept[:5]), victim[5]))
             self.db.commit()
             os.fsync(self.fd)
         except BaseException:
@@ -41,6 +45,11 @@ class Journal:
         dev, ino = (None, None) if info is None else map(str, info)
         self.db.execute('UPDATE items SET state=?,stage=?,dev=?,ino=?,error=? WHERE path=?',
                         (state, stage, dev, ino, error, path))
+        self.db.commit()
+        os.fsync(self.fd)
+
+    def error(self, path, code):
+        self.db.execute('UPDATE items SET error=? WHERE path=?', (code, path))
         self.db.commit()
         os.fsync(self.fd)
 

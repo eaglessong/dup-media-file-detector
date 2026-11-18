@@ -118,7 +118,7 @@ def filesystem(fd):
     if libc.fstatfs(fd, buf) != 0:
         raise MoveError('filesystem_probe_failed')
     kind = struct.unpack_from('@l', buf)[0]
-    if kind not in (0xEF53, 0x01021994):
+    if kind != 0xEF53:
         raise MoveError('unsupported_filesystem')
     return kind
 
