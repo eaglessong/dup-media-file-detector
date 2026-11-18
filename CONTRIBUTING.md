@@ -69,3 +69,13 @@ disposable APFS image and sets REQUIRE_MAC_MOVE_TESTS=1 plus MOVE_CROSS_ROOT; cr
 E2E asserts distinct device IDs. Without that fixture local cross-device tests explicitly
 skip. Native resource forks/xattrs use libc because Python may omit os xattr functions.
 Full-sync tests exercise Darwin file flush requests; no hardware power-loss claim.
+
+
+Revert tests share original synthetic fixtures in tests/revert_fixtures.py. Native
+Linux test_revert*.py is explicitly included in required privileged CI, and native
+macOS test_macos_revert*.py enters the APFS integration/E2E stages. Both tiers perform
+real forward moves and then preview/revert, validate reserved records and whole-tree
+nonmutation on refusal, and assert actual distinct-device transfers. Legacy input is
+synthesized by removing only the new sidecar from a synthetic completed move: the
+external journal writer/schema is unchanged from4af6c1f. Real signals use the shipped
+main/argparse with an observation checkpoint, not a replacement filesystem algorithm.

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "feature": "revert-move",
+  "kind": "application",
+  "phase": "complete",
+  "design": "docs/design/revert-move.md",
+  "blockers": [],
+  "verification": [
+    {
+      "scope": "framework",
+      "command": "python3 scripts/forge.py check",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "framework",
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "application",
+      "command": "python3 -m compileall -q dup_media",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "application",
+      "command": "python3 -m dup_media --help",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "application",
+      "command": "python3 -m unittest discover -s tests -p test_application.py -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "integration",
+      "command": "python3 -m unittest discover -s tests/integration -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "e2e",
+      "command": "python3 -m unittest discover -s tests/e2e -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    }
+  ],
+  "review": {
+    "mode": "independent",
+    "evidence": "work-items/revert-move/evidence.md",
+    "unresolved_blocking_findings": []
+  }
+}

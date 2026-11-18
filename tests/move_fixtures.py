@@ -23,10 +23,13 @@ def make_tree(root):
 
 
 def tree(root):
+    """Media/data inventory; recovery control bytes are checked by namespace_snapshot."""
     if not root.exists():
         return None
     result = {}
     for p in root.rglob('*'):
+        if p.relative_to(root).parts[0] == '.dup-media-recovery':
+            continue
         if p.is_file():
             info = p.stat()
             result[str(p.relative_to(root))] = (p.read_bytes(), info.st_mode, info.st_uid,

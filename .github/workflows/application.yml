@@ -38,11 +38,14 @@ jobs:
           trap 'sudo umount "$cross_root"' EXIT
           sudo env REQUIRE_MOVE_TESTS=1 MOVE_CROSS_ROOT="$cross_root" "$python_path" -m unittest discover -s tests/integration -p 'test_relocate*.py' -v
           sudo env REQUIRE_MOVE_TESTS=1 MOVE_CROSS_ROOT="$cross_root" "$python_path" -m unittest discover -s tests/e2e -p 'test_relocate*.py' -v
+          sudo env REQUIRE_MOVE_TESTS=1 MOVE_CROSS_ROOT="$cross_root" "$python_path" -m unittest discover -s tests/integration -p 'test_revert*.py' -v
+          sudo env REQUIRE_MOVE_TESTS=1 MOVE_CROSS_ROOT="$cross_root" "$python_path" -m unittest discover -s tests/e2e -p 'test_revert*.py' -v
       - name: Bounded synthetic relocation measurements
         if: matrix.python == '3.13'
         run: |
           python_path="$(command -v python3)"
           sudo "$python_path" -m scripts.probe_move
+          sudo "$python_path" -m scripts.probe_revert
 
   macos:
     runs-on: macos-latest

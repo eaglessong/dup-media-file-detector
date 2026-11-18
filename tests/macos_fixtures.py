@@ -64,10 +64,8 @@ PERMISSION_CASES = (
 
 def namespace_snapshot(root):
     """Include directory modes/times and files; exclude normal read-atime effects."""
-    from tests.move_fixtures import tree
-    dirs = {str(p.relative_to(root)): (p.stat().st_mode, p.stat().st_mtime_ns)
-            for p in [root, *root.rglob('*')] if p.is_dir()}
-    return tree(root), dirs
+    from tests.move_fixtures import namespace_snapshot as full_snapshot
+    return full_snapshot(root)
 
 
 from contextlib import contextmanager

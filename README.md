@@ -221,7 +221,8 @@ inspect `items` states (`planned`, `copying`, `staged_verified`, `destination_ve
 `source_removed`) alongside actual bytes/identities before manual recovery. A crash
 between a filesystem action and journal commit is ambiguous. Never delete based only
 on an old journal; do not blindly rerun with the same journal or overwrite prior targets.
-There is no automatic resume/undo, source-directory pruning or deletion-only command.
+There is no automatic partial resume, source-directory pruning or deletion-only command.
+Completed moves can be reverted explicitly as described below.
 
 
 ### macOS relocation (APFS)
@@ -250,3 +251,63 @@ readability alone does not establish move permission. Inheritable ACLs on creati
 parents are conservatively rejected (`permission_inheritance_unsupported`); existing
 non-inheritable ACLs are allowed when required operations are authorized. Preview does
 not reserve future permissions; an execution-only journal parent is checked at execution.
+
+
+## Revert a completed move
+
+Future moves now create protected `.dup-media-recovery/` control records inside the
+archive in addition to the external forward journal. Keep these records: they contain
+private original-root locators and exact per-file provenance. The COMPLETE marker is
+written only after all transfers and stage cleanup. Failed/PENDING operations need
+manual recovery; do not edit records to force eligibility.
+
+From the repository on macOS APFS (normal user):
+
+```sh
+python3 -m dup_media --revert-move ARCHIVE --dry-run
+python3 -m dup_media --revert-move ARCHIVE --exclusive-access
+```
+
+On supported Linux ext4, use the same commands with `sudo` and the existing documented
+capabilities. Stop other writers/sync jobs throughout execution. Dry-run validates the
+plan without creating receipts, staging files or directories; ordinary reads may update
+atime. Every archive subfolder must already exist at the matching relative path under
+the original root. Extra original folders are allowed. A missing/mismatched folder or
+any existing target filename (even identical) blocks the whole plan before changes.
+Revert never creates missing original subfolders or overwrites files.
+
+Revert restores only recorded moved paths; it does not rerun duplicate detection or
+need the old keeper. It verifies live bytes, stages/publishes without overwrite and
+only then removes the matching archive path. Unregistered archive files remain. The
+reserved recovery control tree is excluded from folder matching and retained afterward.
+Multiple completed operations require `--operation ID`; ambiguous or incomplete work
+is never selected automatically. IDs are listed on an ambiguous invocation.
+
+For moves made before recovery manifests existed, supply both extra locations:
+
+```sh
+python3 -m dup_media --revert-move ARCHIVE --original-root ORIGINAL \
+  --move-journal OLD_EXTERNAL_OPERATION_DIRECTORY --dry-run
+python3 -m dup_media --revert-move ARCHIVE --original-root ORIGINAL \
+  --move-journal OLD_EXTERNAL_OPERATION_DIRECTORY --exclusive-access
+```
+
+The legacy journal must have all terminal source_removed rows, no errors/staging aliases,
+absent original leaves and matching live archive/root identities and content. This proves
+terminal filesystem consistency, not a historical successful process exit. Do not copy
+an archive to a different device or recreate/move its original root and expect identity
+checks to be bypassed. A malformed new manifest never falls back to legacy arguments.
+
+Revert receipts live under the operation's reserved control directory, or under a new
+`revert/` child of the legacy journal directory; original journal.sqlite bytes are not
+rewritten. Any interrupted/failed started revert refuses automatic retry and needs
+manual inspection. Batches are not atomic and failures can leave extra copies. A valid
+completed revert can be repeated as a read-only already_reverted result.
+
+JSONL identifies `revert_move`, operation ID, provenance and metadata policy; item paths
+are relative. Summaries contain planned/restored/bytes_restored/errors/complete. Exit0
+means complete,1blocked/partial,2invalid/unsupported invocation,130cancelled. Redirect
+output outside operation trees. Never treat a fingerprint or old receipt alone as
+permission to delete media. Linux preserves supported strict metadata; macOS restores
+main-stream bytes only, rejects resource forks and cannot resurrect discarded tags,
+permissions or times. New inodes/creation times/link topology remain possible.

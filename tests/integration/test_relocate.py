@@ -149,6 +149,9 @@ class TransferIntegration(MoveFixture):
         self.assertEqual(tree(self.source), before)
         self.assertFalse((self.dest / 'nested/b.jpg').exists())
         self.journal = self.base / 'second-operation'
+        # A failed move now leaves PENDING recovery provenance; a new operation
+        # must not automatically reuse that unresolved archive.
+        self.dest = self.base / 'second-destination'
         with patch('dup_media.move_journal.Journal.state', side_effect=sqlite3.OperationalError('synthetic journal full')) as fault:
             code, records = self.run_move()
             fault.assert_called()
