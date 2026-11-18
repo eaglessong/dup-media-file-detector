@@ -29,3 +29,9 @@ Framework CI and application CI run separately; application CI covers Linux Pyth
 exercise actual permission failures. Cancellation uses sparse synthetic files. All
 fixtures are disposable, never personal media. Keep private paths, credentials, and
 copyrighted sample collections out of Git. A project license remains undecided.
+
+Forge contributors: shared role prompts and protocols live in `docs/forge/`. See its
+prompt contract for `scripts/forge.py render-prompt ROLE --context FILE.json`. Changes
+must preserve declared input bindings, relative material links and paired skill entry
+points. Run framework validation/unit tests and evaluate changed execution instructions
+in a disposable scenario; structural checks alone do not prove agent behavior.

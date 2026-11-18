@@ -8,7 +8,20 @@ import re
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-PHASES = {"prospect", "survey", "smelt", "forge", "temper", "assay", "stamp", "complete", "blocked"}
+TOKEN = re.compile(r"\{\{([a-z][a-z0-9_]*)\}\}")
+PROSPECT_INPUTS = ("repo_root", "feature_description", "touched_paths", "knowledge_map")
+ASSAY_INPUTS = ("repo_root", "evidence_digest", "knowledge_map")
+PROMPT_INPUTS = {
+    **dict.fromkeys(("code-archaeologist", "architecture-mapper", "scale-analyst",
+                     "test-landscape-mapper", "prospect-devils-advocate"), PROSPECT_INPUTS),
+    **dict.fromkeys(("devils-advocate", "scale-stress-reviewer",
+                     "telemetry-security-reviewer", "test-realism-auditor"), ASSAY_INPUTS),
+}
+FORGE_REFERENCES = (
+    "prompt-contract", "knowledge-map", "decision-records", "test-data-protocol",
+    "live-capture-protocol", "shortcut-resistance",
+)
+PHASES = {"prospect", "survey", "smelt", "forge", "temper", "assay", "stamp", "complete", "blocked", "design-delivered"}
 SCOPES = {"framework", "application", "integration", "e2e"}
 REQUIRED = (
     "README.md", "AGENTS.md", "CLAUDE.md", "CONTRIBUTING.md", "docs/PRODUCT.md",
@@ -17,8 +30,11 @@ REQUIRED = (
     ".agents/skills/forge/SKILL.md", ".claude/skills/forge/SKILL.md",
     ".github/workflows/framework.yml", ".github/PULL_REQUEST_TEMPLATE.md",
     ".agents/skills/code_review/SKILL.md", ".claude/skills/code_review/SKILL.md",
-    "docs/code-review/roles.md", "docs/code-review/report.md",
+    "docs/code-review/roles.md", "docs/code-review/report.md", "docs/forge/PORTING.md",
+) + tuple(f"docs/forge/prompts/{role}.md" for role in PROMPT_INPUTS) + tuple(
+    f"docs/forge/references/{name}.md" for name in FORGE_REFERENCES
 )
+
 
 
 def new_feature(root: Path, slug: str) -> None:
@@ -60,8 +76,92 @@ def local_file(root: Path, value: object) -> bool:
     return candidate.is_relative_to(root.resolve()) and candidate.is_file()
 
 
-def check(root: Path) -> list[str]:
+
+def prompt_template(root: Path, role: str) -> str:
+    if role not in PROMPT_INPUTS:
+        raise ValueError(f"Unknown prompt role: {role}")
+    template = (root / f"docs/forge/prompts/{role}.md").read_text()
+    expected = set(PROMPT_INPUTS[role])
+    actual = set(TOKEN.findall(template))
+    if actual != expected:
+        raise ValueError(f"{role}: template inputs differ: missing={sorted(expected - actual)}, "
+                         f"unknown={sorted(actual - expected)}")
+    remainder = TOKEN.sub("", template)
+    if "{{" in remainder or "}}" in remainder:
+        raise ValueError(f"{role}: malformed template placeholder")
+    return template
+
+
+
+def portable_prompt_links(root: Path, role: str, template: str) -> str:
+    source_dir = root / "docs/forge/prompts"
+    def replace(match: re.Match) -> str:
+        target = match[2]
+        if target.startswith(("https://", "http://", "#")):
+            return match[0]
+        path, separator, fragment = target.partition("#")
+        candidate = (source_dir / path).resolve()
+        if not candidate.is_relative_to(root.resolve()) or not candidate.is_file():
+            raise ValueError(f"{role}: missing or unsafe prompt material link: {target}")
+        destination = str(candidate) + (separator + fragment if separator else "")
+        return match[1] + "<" + destination + ">" + match[3]
+    return re.sub(r"(\[[^\]\n]*\]\()([^)\s]+)(\))", replace, template)
+
+
+def render_prompt(root: Path, role: str, context: object) -> str:
+    template = prompt_template(root, role)
+    expected = set(PROMPT_INPUTS[role])
+    if not isinstance(context, dict) or set(context) != expected:
+        actual = set(context) if isinstance(context, dict) else set()
+        raise ValueError(f"{role}: context inputs differ: missing={sorted(expected - actual)}, "
+                         f"unknown={sorted(actual - expected)}")
+    for key, value in context.items():
+        if not isinstance(value, (str, list, dict)) or not value or (
+            isinstance(value, str) and not value.strip()
+        ):
+            raise ValueError(f"{role}: input {key} must be a nonempty string, list, or object")
+        if key in ("repo_root", "feature_description") and not isinstance(value, str):
+            raise ValueError(f"{role}: input {key} must be a nonempty string")
+        if key == "touched_paths" and (
+            not isinstance(value, list) or
+            any(not isinstance(path, str) or not path.strip() for path in value)
+        ):
+            raise ValueError(f"{role}: touched_paths must be a nonempty list of path strings")
+    template = portable_prompt_links(root, role, template)
+    rendered = TOKEN.sub(lambda match: context[match[1]] if isinstance(context[match[1]], str)
+                         else json.dumps(context[match[1]], indent=2), template)
+    if TOKEN.search(rendered):
+        raise ValueError(f"{role}: unresolved placeholder in rendered prompt/context")
+    return rendered
+
+
+def check_forge_materials(root: Path) -> list[str]:
     errors = []
+    for role in PROMPT_INPUTS:
+        try:
+            prompt_template(root, role)
+        except (OSError, ValueError) as exc:
+            errors.append(str(exc))
+    # Validate portable relative Markdown links in the workflow/skills/shared materials.
+    materials = [name for name in REQUIRED if name.startswith("docs/forge/")]
+    materials += ["docs/WORKFLOW.md", ".agents/skills/forge/SKILL.md",
+                  ".claude/skills/forge/SKILL.md"]
+    for name in materials:
+        source = root / name
+        if not source.is_file():
+            continue
+        for target in re.findall(r"\[[^\]\n]*\]\(([^)\s]+)\)", source.read_text()):
+            if target.startswith(("https://", "http://", "#")):
+                continue
+            path = target.split("#", 1)[0]
+            candidate = (source.parent / path).resolve()
+            if not candidate.is_relative_to(root.resolve()) or not candidate.is_file():
+                errors.append(f"{name}: missing or unsafe material link: {target}")
+    return errors
+
+
+def check(root: Path) -> list[str]:
+    errors = check_forge_materials(root)
     for name in REQUIRED:
         if not (root / name).is_file():
             errors.append(f"Missing required file: {name}")
@@ -153,12 +253,19 @@ def main() -> int:
     sub = parser.add_subparsers(dest="action", required=True)
     new = sub.add_parser("new-feature", help="create a brief, design, status, and evidence")
     new.add_argument("slug")
+    render = sub.add_parser("render-prompt", help="bind a leaf-role prompt; does not dispatch")
+    render.add_argument("role", choices=sorted(PROMPT_INPUTS))
+    render.add_argument("--context", type=Path, required=True, help="JSON object with exact role inputs")
     sub.add_parser("check", help="validate framework structure and declared evidence")
     args = parser.parse_args()
     try:
         if args.action == "new-feature":
             new_feature(ROOT, args.slug)
             print(f"Created work-items/{args.slug}; edit its brief and docs/design/{args.slug}.md")
+            return 0
+        if args.action == "render-prompt":
+            context = json.loads(args.context.read_text())
+            print(render_prompt(ROOT, args.role, context), end="")
             return 0
         errors = check(ROOT)
     except (OSError, ValueError) as exc:

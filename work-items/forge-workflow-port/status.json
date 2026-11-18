@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "feature": "forge-workflow-port",
+  "kind": "documentation",
+  "phase": "stamp",
+  "design": "docs/design/forge-workflow-port.md",
+  "blockers": [],
+  "verification": [
+    {
+      "scope": "framework",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 scripts/forge.py check",
+      "exit_code": 0,
+      "outcome": "passed"
+    },
+    {
+      "scope": "framework",
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "outcome": "passed"
+    }
+  ],
+  "review": {
+    "mode": "independent",
+    "evidence": "work-items/forge-workflow-port/evidence.md",
+    "unresolved_blocking_findings": []
+  }
+}

@@ -27,11 +27,21 @@ private paths, and recovery if a separately authorized operation modifies files.
 
 State expected workload, memory/I/O bounds, cancellation, diagnostics, and assumptions.
 
+## Diagnostics and user-visible outcomes
+
+Define complete/incomplete/error/cancel behavior, stdout/stderr or report contracts,
+and useful diagnostics without unnecessary private content. Do not invent a cloud
+telemetry dependency for a local feature.
+
 ## Verification and acceptance matrix
 
 | Requirement | Integration test | Entry-point E2E test | Demo outcome |
 | --- | --- | --- | --- |
 | R1 | Planned | Planned | Planned |
+
+State fixture provenance, required environment/preconditions, any capture trigger and
+ADEQUATE/PARTIAL/BLOCKED verdict. Application features need integration plus actual
+entry-point E2E behavior; tooling/docs use their scoped structural and instruction checks.
 
 ## Delivery and rollout
 
