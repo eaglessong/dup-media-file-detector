@@ -25,6 +25,24 @@ class MoveCliModes(unittest.TestCase):
 
 
 class MoveCli(MoveFixture):
+    def test_shipped_cli_rejects_linux_parent_policies_before_mutation(self):
+        from tests.move_fixtures import LINUX_PARENT_CASES, linux_parent_policy_tree
+        for case in LINUX_PARENT_CASES:
+            with self.subTest(case=case), linux_parent_policy_tree(case) as fixture:
+                before = fixture.snapshot()
+                for dry in ([False] if case.startswith('journal_') else [True, False]):
+                    args = [sys.executable, '-m', 'dup_media', '--move-duplicates',
+                            str(fixture.source), '--destination', str(fixture.dest)]
+                    args += ['--dry-run'] if dry else ['--journal', str(fixture.journal), '--exclusive-access']
+                    p = subprocess.run(args, cwd=REPO, capture_output=True, text=True, timeout=30)
+                    self.assertEqual(p.returncode, 1, p.stdout + p.stderr)
+                    rows = [json.loads(s) for s in p.stdout.splitlines()]
+                    self.assertIn(fixture.error, [r.get('code') for r in rows])
+                    self.assertEqual(rows[-1]['moved'], 0)
+                    self.assertFalse(rows[-1]['complete'])
+                    self.assertEqual(fixture.snapshot(), before)
+                    self.assertFalse(fixture.journal.exists())
+
     def cli(self, dry=False, extra=()):
         args = [sys.executable, '-m', 'dup_media', '--move-duplicates', str(self.source), '--destination', str(self.dest)]
         args += ['--dry-run'] if dry else ['--journal', str(self.journal), '--exclusive-access']

@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature": "move-dup-files",
   "kind": "application",
-  "phase": "complete",
+  "phase": "forge",
   "design": "docs/design/move-dup-files.md",
   "blockers": [],
   "verification": [
@@ -64,6 +64,8 @@
   "review": {
     "mode": "independent",
     "evidence": "work-items/move-dup-files/evidence.md",
-    "unresolved_blocking_findings": []
+    "unresolved_blocking_findings": [
+      "PR8 review5951891667 F2: Linux parent inode flags bypass mutation preflight"
+    ]
   }
 }

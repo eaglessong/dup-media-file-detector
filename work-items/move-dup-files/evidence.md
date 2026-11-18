@@ -263,3 +263,34 @@ preflight and native ordinary-user regressions. All5 checks green at816e341;
 macOS34integration+10nativeE2E and Linux31integration+8E2E per Python3.11/3.13.
 Separate ASSAY reviewers/challenger report no blocker; see macOS evidence and ADR005.
 Final fixture/evidence head will be rechecked. No merge or real-library move performed.
+
+
+## Ship-it F2 follow-up — 2026-11-18 (in progress)
+
+USER invoked `/ship-it 8`, authorizing scoped repair, verification, PR replies and
+ordinary head-pinned squash merge. Prior no-merge implementation/patrol scope does not
+apply to this new explicit shipping request. PR8 review5951891667 is FIX: static Linux
+append-only directory deletion blockers bypass global preflight. Existing F1 remains
+fixed. Design and ADR-005 were refined before code changes; this is an existing
+acceptance requirement, with no material USER decision missing. Linux parent probes
+also conservatively reject unsupported destination/journal inode/project inheritance.
+Native Linux execution is unavailable on this macOS host; actual required ext4 integration
+and entry-point regressions will be verified by exact-head hosted CI, not reported as
+local passes. Candidate tests have not run yet. No personal media operations authorized.
+
+
+F2 repair local TEMPER receipts (macOS, Python3.13): `python3 scripts/forge.py check`
+exit0; `python3 -m unittest discover -s tests -v`29 tests exit0; compileall/help
+and2application contracts exit0; full integration90 tests exit0 with34explicit skips;
+full entry-point E2E29 tests exit0 with10explicit skips. Linux-only parent-policy
+methods are among the skips, not local native proof. Exact logs stay ignored under
+.agent-local/ship-it/eaglessong-dup-media-file-detector/pr-8/local-*.log.
+
+Two new behavioral methods share10 native recipes: source APPEND/IMMUTABLE, destination
+APPEND/IMMUTABLE/NODUMP, a missing suffix below NODUMP, project ID with/without native
+inheritance, journal APPEND/NODUMP. Both tiers use a later blocked duplicate group,
+assert zero moves/incomplete/error and unchanged full file+directory namespaces; the
+CLI tier executes `python -m dup_media`. Fixtures check native flag/project readbacks,
+actual unlink denial even for root, and actual inherited child project ID. Flag/project
+cleanup is in finally. Journal-specific checks apply only to execution because dry-run
+accepts no journal. Required ext4 CI remains pending; no claim of F2 native closure yet.

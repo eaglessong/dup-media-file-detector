@@ -228,6 +228,11 @@ def metadata_policy():
 
 
 def check_delete(fd, leaf, path):
+    flags = array.array('I', [0])
+    fcntl.ioctl(fd, 0x80086601, flags, True)  # FS_IOC_GETFLAGS on the parent.
+    # W/X access does not test VFS may_delete's append-only restriction.
+    if flags[0] & (0x10 | 0x20):  # IMMUTABLE | APPEND
+        raise MoveError('source_directory_flags_unsupported', path)
     if not os.access('.', os.W_OK | os.X_OK, dir_fd=fd, effective_ids=True):
         raise MoveError('source_permission_denied', path)
     parent = os.fstat(fd)
@@ -238,6 +243,16 @@ def check_delete(fd, leaf, path):
 
 
 def check_create(fd, directories=False, kind='destination', path='.'):
+    flags = array.array('I', [0])
+    fcntl.ioctl(fd, 0x80086601, flags, True)
+    # INDEX/EXTENTS describe directory layout. Other policies can prevent cleanup
+    # or be inherited by staging files, missing descendants, or the SQLite journal.
+    if flags[0] & ~(0x1000 | 0x80000):
+        raise MoveError(kind + '_directory_flags_unsupported', path)
+    project = array.array('I', [0] * 7)
+    fcntl.ioctl(fd, 0x801c581f, project, True)  # FS_IOC_FSGETXATTR
+    if project[0] or project[1] or project[3] or project[4]:
+        raise MoveError(kind + '_directory_project_unsupported', path)
     if not os.access('.', os.W_OK | os.X_OK, dir_fd=fd, effective_ids=True):
         raise MoveError(kind + '_permission_denied', path)
 

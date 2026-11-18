@@ -125,7 +125,12 @@ Execution stages:
    aliases, metadata capability, source-removal permissions, destination space estimates,
    journal safety, and unsupported filesystem capabilities. Check encountered source
    directory identities against destination ancestors. A detected blocker yields zero
-   moves and no destination/journal mutation. Space/permissions can change later.
+   moves and no destination/journal mutation. Linux source-removal parents must have
+   neither APPEND nor IMMUTABLE inode flags. Creation ancestors must have only ordinary
+   EXTENTS/INDEX directory flags and no project policy/inheritance; reject unsupported
+   inherited metadata before staging or SQLite journal creation (ADR-005). These probes
+   are read-only and use pinned descriptors, including nearest existing ancestors for
+   missing suffixes. Space/permissions can change later.
 4. Dry-run streams the checked plan and exits. Execute creates the new journal and
    required destination directories only now; persist the plan before the first copy.
 5. For each victim, confirm root/parent/name identities and exact equality with the

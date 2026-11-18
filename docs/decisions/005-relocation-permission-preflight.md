@@ -20,3 +20,20 @@ layouts explicitly; alternative inheritance emulation is broader and error-prone
 write probes violate dry-run. Stable relative errors disclose the blocked capability.
 No guarantee against later permission changes or arbitrary concurrent writers. Revisit
 for native inheritance modeling, additional filesystems or concurrent operation support.
+
+
+## Linux parent-inode follow-up (2026-11-18, AGENT)
+
+PR8 review5951891667 established that W/X authorization does not imply unlink is
+allowed in an append-only ext4 directory. Read FS_IOC_GETFLAGS on every source-removal
+parent; reject APPEND and IMMUTABLE before mutation. For destination/journal creation
+parents, accept only ordinary EXTENTS/INDEX directory layout flags and zero project
+policy (FS_IOC_FSGETXATTR; allocated extent count is not policy). Reject other flags or
+project inheritance conservatively: staging metadata and SQLite journal cleanup cannot
+be proven compatible without mutation. Check the nearest existing creation ancestor
+when descendants are absent. Do not clear flags or create probe files in product code.
+This implements the existing whole-plan contract; no new USER preference is inferred.
+Tests use disposable native ext4 flags/project-ID controls, later-group ordering and
+whole-namespace snapshots in integration and shipped CLI tiers. Source-parent harmless
+flags need not be rejected because deletion does not inherit them. Ordinary scanning
+and the Darwin adapter keep their current contracts.

@@ -45,6 +45,22 @@ class RootSafety(unittest.TestCase):
 
 
 class TransferIntegration(MoveFixture):
+    def test_linux_parent_policies_block_the_whole_plan_before_mutation(self):
+        from tests.move_fixtures import LINUX_PARENT_CASES, linux_parent_policy_tree
+        for case in LINUX_PARENT_CASES:
+            with self.subTest(case=case), linux_parent_policy_tree(case) as fixture:
+                before = fixture.snapshot()
+                # Dry-run has no journal argument, so journal-only checks apply
+                # to execution. All other cases must reject both modes.
+                for dry in ([False] if case.startswith('journal_') else [True, False]):
+                    code, rows = fixture.run(dry)
+                    self.assertEqual(code, 1, rows)
+                    self.assertIn(fixture.error, [r.get('code') for r in rows])
+                    self.assertEqual(rows[-1]['moved'], 0)
+                    self.assertFalse(rows[-1]['complete'])
+                    self.assertEqual(fixture.snapshot(), before)
+                    self.assertFalse(fixture.journal.exists())
+
     def test_exact_move_preserves_bytes_metadata_and_unique_files(self):
         before = tree(self.source)
         victim = self.source / 'nested/b.jpg'
