@@ -71,3 +71,27 @@ preserved historical quotations, unchanged review authority and validator/test p
 Standalone skill-creator quick_validate.py could not run under either system or bundled
 Python because PyYAML is absent (exit 1); this is not recorded as a validation pass.
 No application behavior or dependencies changed. No PR publication or merge performed.
+
+## Rename PR and merge authorization — 2026-11-18
+
+USER explicitly requested: “create a PR of the renaming and merge it”. This authorizes
+this rename branch's ordinary merge, not media-size-summary PR #5 or a release.
+At clean implementation head 80f48e68d68fdf24aad62cff18551302d334f9bd (base/merge-base
+59f05d4a3160590f3b3e454130b879b07603b2b9), reran framework check, all 27 tests and diff
+check: exit0. No application/CI/dependency change; existing hosted application checks
+will still be required. Missing PyYAML standalone validator remains honestly unrun.
+
+Used code-review Full: all five specialist checklists across three separate agents,
+then a fourth agent challenged the draft. No human independence; some role passes
+share agents. Review includes its own instructions, whose changes only rename the
+command. Findings: draft0, retained0, advisory0; no fixes needed. Test-impact inspected
+the one changed negative-test method: actual missing/divergent skill paths remain
+discriminating. Final challenge examined stale-name/session retry and authority risks;
+client discovery is untested with correct refresh/fallback guidance, not a claimed pass.
+Local synthesis: .agent-local/reviews/rename-review-80f48e6.md. Reviewers did not run tests.
+
+Ship-it will record exact PR/head/base/feedback/check provenance under ignored per-PR
+state and require actual hosted success before a normal head-pinned merge. Branch-rules
+API returned plan-related403; this is unknown policy information, not absence of rules.
+No admin or rule bypass will be used. This entry adds delivery evidence only; skill,
+validator and test content remain identical to the reviewed implementation.
