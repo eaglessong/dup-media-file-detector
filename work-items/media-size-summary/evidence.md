@@ -176,3 +176,27 @@ Returning to forge after review-only synthesis. Source/tests unchanged by review
 only final artifact state/evidence metadata updated afterward. Final structural and
 staged-whitespace checks will cover that metadata. Deliver PR and verify actual-head CI
 plus conversation/reviews/inline comments; leave unmerged. No current authority to merge.
+
+## Delivery — 2026-11-18
+
+PR: https://github.com/eaglessong/dup-media-file-detector/pull/5
+Branch codex/media-size-summary, implementation commit 39b3b65b80540c03f4b1d1073a2865a148154bac.
+Fetched main before delivery; base remained 59f05d4, branch ahead by one commit and
+mergeable. git diff --cached --check passed for all newly tracked artifacts before
+commit. No unrelated edits or skill/framework/CI changes included.
+
+`gh pr checks 5 --repo eaglessong/dup-media-file-detector` exited 0 at implementation
+head: framework and application Python 3.11/3.13 all passed. Application run
+44232405937 and framework run 44232405831. Read application logs: both Linux versions
+ran 2 application contract tests, 24 filesystem integration tests and 10 E2E tests;
+all passed without skips, including non-UTF-8 filename and real permission behavior.
+This closes the local supported-platform skip; no NAS/throughput claim is added.
+Read PR conversation, reviews and paginated inline comments: none at inspection.
+
+Completed means owner-review-ready, not merged. Final metadata-only completion commit
+reruns structural checks and CI; actual final head is checked before handoff. Source
+and tests remain byte-identical to reviewed/tested implementation. Demo: README's
+disposable python3 - script prints summary 3 files/53 bytes/complete true, group 42.
+Normal CLI requires no new options. Retained limits: logical rather than allocated
+bytes, live-tree partial observations, strict external schema consumers unknown,
+no NAS or benchmark, output outside selected root. No merge/release/destructive action.

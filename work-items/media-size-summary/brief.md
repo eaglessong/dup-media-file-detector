@@ -1,6 +1,6 @@
 # Media size summary
 
-**Status:** Implemented, locally verified and agent-reviewed — PR delivery pending
+**Status:** Implemented, verified and agent-reviewed — ready for owner PR review
 
 ## Problem and intended user
 

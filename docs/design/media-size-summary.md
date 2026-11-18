@@ -1,6 +1,6 @@
 # Media size summary
 
-**Status:** Implemented, locally verified and agent-reviewed — PR delivery pending
+**Status:** Implemented, verified and agent-reviewed — ready for owner PR review
 **Date:** 2026-11-18
 **Requirements:** [brief](../../work-items/media-size-summary/brief.md)
 **Decisions:** [ADR-002](../decisions/002-media-size-summary.md)

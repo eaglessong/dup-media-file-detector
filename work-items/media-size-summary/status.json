@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature": "media-size-summary",
   "kind": "application",
-  "phase": "stamp",
+  "phase": "complete",
   "design": "docs/design/media-size-summary.md",
   "blockers": [],
   "verification": [
