@@ -138,12 +138,15 @@ with patch('dup_media.relocate.checkpoint',checkpoint):
     def test_shipped_cli_rejects_scratch_within_destination(self):
         self.dest.mkdir()
         env = dict(os.environ, TMPDIR=str(self.dest))
+        before_dest = self.dest.stat()
         args = [sys.executable, '-m', 'dup_media', '--move-duplicates', str(self.source),
                 '--destination', str(self.dest), '--dry-run']
         before = tree(self.source)
         p = subprocess.run(args, cwd=REPO, env=env, capture_output=True, text=True, timeout=30)
         self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
         self.assertEqual(list(self.dest.iterdir()), [])
+        self.assertEqual(self.dest.stat().st_mtime_ns, before_dest.st_mtime_ns)
+        self.assertEqual(self.dest.stat().st_ctime_ns, before_dest.st_ctime_ns)
         self.assertEqual(tree(self.source), before)
 
     def test_shipped_cli_accepts_existing_empty_destination(self):

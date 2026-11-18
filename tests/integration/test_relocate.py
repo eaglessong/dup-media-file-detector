@@ -38,7 +38,7 @@ class RootSafety(unittest.TestCase):
             source.mkdir()
             destination = root / 'dest'
             destination.mkdir()
-            with patch('dup_media.relocate.tempfile.gettempdir', return_value=str(destination)):
+            with patch.dict(os.environ, {'TMPDIR': str(destination)}):
                 with self.assertRaises(ValueError):
                     Relocation(source, destination)
             self.assertEqual(list(destination.iterdir()), [])

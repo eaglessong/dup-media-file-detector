@@ -45,18 +45,20 @@ class SourceFailure(OSError):
 
 
 class Scan:
-    def __init__(self, root, extensions=DEFAULT_EXTENSIONS):
+    def __init__(self, root, extensions=DEFAULT_EXTENSIONS, scratch_dir=None):
         self.root = root
         self.extensions = extensions
+        self.scratch_dir = scratch_dir
 
     def __enter__(self):
         self.root_fd = open_root(self.root)
         try:
             # Never create scratch artifacts anywhere inside the source tree.
             root = Path(self.root).resolve()
-            if Path(tempfile.gettempdir()).resolve().is_relative_to(root):
+            scratch = self.scratch_dir if self.scratch_dir is not None else tempfile.gettempdir()
+            if Path(scratch).resolve().is_relative_to(root):
                 raise ValueError('scratch directory is inside selected root')
-            self.temp = tempfile.TemporaryDirectory(prefix='dup-media-')
+            self.temp = tempfile.TemporaryDirectory(prefix='dup-media-', dir=scratch)
             self.db = sqlite3.connect(os.path.join(self.temp.name, 'index.sqlite'))
             self.db.executescript('''
                 PRAGMA cache_size=-2048;

@@ -4,7 +4,6 @@ import json
 import os
 import sqlite3
 import stat
-import tempfile
 import unicodedata
 import uuid
 from contextlib import contextmanager
@@ -69,7 +68,10 @@ class Relocation:
     def __init__(self, source, destination, journal=None):
         self.source = Location(source)
         self.destination = Location(destination)
-        scratch = os.path.realpath(tempfile.gettempdir())
+        # tempfile.gettempdir() may itself create a probe file. Select/pin scratch
+        # read-only first so even rejection cannot touch either selected tree.
+        scratch = os.path.realpath(os.environ.get('TMPDIR') or os.environ.get('TEMP') or os.environ.get('TMP') or '/tmp')
+        self.scratch = scratch
         scratch_location = Location(scratch)
         if (os.path.commonpath([scratch, self.destination.path]) == self.destination.path
                 or (self.destination.existing == len(self.destination.parts)
@@ -306,7 +308,7 @@ class Relocation:
         moved = byte_count = count = errors = 0
         current = '.'
         journal = None
-        with Scan(self.source.path, extensions) as scan:
+        with Scan(self.source.path, extensions, scratch_dir=self.scratch) as scan:
             pinned = self.source.open()
             try:
                 if identity(pinned) != identity(scan.root_fd):
