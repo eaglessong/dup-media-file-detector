@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature": "forge-workflow-port",
   "kind": "documentation",
-  "phase": "stamp",
+  "phase": "complete",
   "design": "docs/design/forge-workflow-port.md",
   "blockers": [],
   "verification": [

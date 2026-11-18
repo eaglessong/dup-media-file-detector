@@ -1,6 +1,6 @@
 # Full forge workflow adaptation
 
-**Status:** Implemented — awaiting delivery checks
+**Status:** Implemented — ready for owner review
 
 ## Problem and current state
 

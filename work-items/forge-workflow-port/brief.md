@@ -1,6 +1,6 @@
 # Port full forge workflow
 
-**Status:** Implemented — PR delivery in progress
+**Status:** Implemented — ready for owner review
 
 The owner requests Cowork forge's key phases, applicable role prompts and supporting
 materials in this repository. Implement R1–R6 in docs/design/forge-workflow-port.md.

@@ -88,5 +88,14 @@ Local application integration/E2E suites were not rerun for this framework-only 
 GitHub application CI is expected to execute them on the PR, and actual results must be
 recorded rather than assumed.
 
-Branch: codex/port-forge-workflow. PR creation and CI observation are the remaining
-STAMP steps. No merge is authorized by this request.
+Delivered [PR #3](https://github.com/eaglessong/dup-media-file-detector/pull/3) from
+codex/port-forge-workflow. At code-bearing head
+6a0b18d1f6e579224830b1fddc2934faeb79d183, framework and application Python 3.11/3.13
+checks all passed. Application CI ran its syntax/CLI, filesystem integration and real
+entry-point E2E checks; no local run is implied. PR conversation, reviews and inline
+comments were empty when checked. This final delivery metadata commit is checked by
+CI separately; do not carry the earlier green to a different SHA without verifying it.
+
+Feature state complete means the port is delivered for owner review, not merged.
+No merge is authorized by this request. Local working branch remains available for
+review/use; main changes only after the owner authorizes merge.
