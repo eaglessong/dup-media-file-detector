@@ -255,9 +255,14 @@ class Relocation:
                         leaf = path.rsplit('/', 1)[-1]
                         if signature(os.stat(leaf, dir_fd=source_parent, follow_symlinks=False)) != signature(os.fstat(source.fileno())):
                             raise MoveError('source_changed', path)
-                        # Recheck keeper and destination name immediately before destructive step.
-                        with checked_source(scan, keeper):
+                        # Recheck both indexed signatures after the final injection/race boundary.
+                        with checked_source(scan, path), checked_source(scan, keeper):
                             pass
+                        if metadata(source.fileno()) != expected or not equal_streams(kept, source):
+                            raise MoveError('source_changed', path)
+                        with os.fdopen(os.dup(fd), 'rb') as last_copy:
+                            if metadata(fd) != expected or not equal_streams(source, last_copy):
+                                raise MoveError('destination_changed', path)
                         if identity(fd) != (os.stat(name, dir_fd=parent, follow_symlinks=False).st_dev,
                                             os.stat(name, dir_fd=parent, follow_symlinks=False).st_ino):
                             raise MoveError('destination_changed', path)
@@ -296,7 +301,7 @@ class Relocation:
                     raise MoveError('root_changed')
             finally:
                 os.close(pinned)
-            source_lock = dest_lock = None
+            source_lock = dest_lock = final_dest_lock = None
             try:
                 if not dry_run:
                     fcntl.flock(scan.root_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -327,6 +332,8 @@ class Relocation:
                 if not dry_run and count:
                     dest_fd = self.destination.open(create=True)
                     try:
+                        fcntl.flock(dest_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        final_dest_lock = os.dup(dest_fd)
                         journal = Journal(self.journal_path, scan.root_fd, dest_fd, self.rows(scan))
                     finally:
                         os.close(dest_fd)
@@ -354,6 +361,8 @@ class Relocation:
                         moved += 1
                         byte_count += size
                     journal.close()
+                if final_dest_lock is not None:
+                    os.close(final_dest_lock)
                 if dest_lock is not None:
                     os.close(dest_lock)
                 if source_lock is not None:

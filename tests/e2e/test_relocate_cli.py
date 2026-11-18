@@ -112,10 +112,15 @@ with patch('dup_media.relocate.checkpoint',checkpoint):
     def test_non_root_cli_refuses_hidden_metadata_guarantee(self):
         if os.getuid() != 0:
             self.fail('privileged fixture prerequisite')
+        import shutil
+        # Give the dropped user a readable copy of the shipped package, rather than
+        # accidentally testing runner-home import permissions.
+        self.base.chmod(0o755)
+        shutil.copytree(REPO / 'dup_media', self.base / 'dup_media')
         p = subprocess.run([sys.executable, '-m', 'dup_media', '--move-duplicates',
                             str(self.source), '--destination', str(self.dest), '--dry-run'],
-                           cwd=REPO, capture_output=True, text=True, timeout=30,
+                           cwd=self.base, capture_output=True, text=True, timeout=30,
                            user=65534, group=65534, extra_groups=[])
-        self.assertEqual(p.returncode, 2)
+        self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
         self.assertFalse(self.dest.exists())
         self.assertTrue((self.source / 'nested/b.jpg').exists())

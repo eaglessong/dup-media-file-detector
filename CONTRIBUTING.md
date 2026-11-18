@@ -51,3 +51,13 @@ it is not a huge-filesystem test. Existing CI discovery runs these tests automat
 Patrol contributors: docs/patrol/sweep.md defines publication/deduplication behavior.
 Evaluate with offline PR snapshots; installing the skill does not authorize posting
 live reviews. Keep both skill entrypoints mirrored and run framework checks/tests.
+
+Relocation tests add privileged Linux metadata/namespace and real cross-device cases.
+The application workflow runs ordinary suites as the runner user, then invokes only
+relocation tests under sudo with `REQUIRE_MOVE_TESTS=1` (missing prerequisites fail,
+never skip). ext4 scratch plus `/dev/shm` tmpfs must have distinct device IDs. Tests use
+only new synthetic temporary trees; bind mounts are unmounted in finally blocks.
+A Python3.13 CI step runs `sudo python3 -m scripts.probe_move` for bounded 10,000-file
+planning and 16-MiB transfer measurements. macOS explicitly skips privileged tests;
+this is not evidence that relocation works there. Do not remove strict metadata gates
+to make an unsupported platform pass. ACL/trusted-xattr/flags probes are real fixtures.

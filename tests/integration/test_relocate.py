@@ -298,3 +298,25 @@ class TransferIntegration(MoveFixture):
             self.assertFalse(self.dest.exists())
         finally:
             os.close(fd)
+
+    def test_late_in_place_source_or_destination_changes_are_detected(self):
+        def change_source(stage, path):
+            if stage == 'before_unlink':
+                (self.source / path).write_bytes(b'z' * 100)
+        with patch('dup_media.relocate.checkpoint', change_source):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'z' * 100)
+        self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        # Restore duplicate fixture, select independent new destinations/journal.
+        (self.source / 'nested/b.jpg').write_bytes(b'a' * 100)
+        self.dest = self.base / 'second-dest'
+        self.journal = self.base / 'second-journal'
+        def change_destination(stage, path):
+            if stage == 'before_unlink':
+                (self.dest / path).write_bytes(b'z' * 100)
+        with patch('dup_media.relocate.checkpoint', change_destination):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertEqual((self.source / 'a.jpg').read_bytes(), b'a' * 100)

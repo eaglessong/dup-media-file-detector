@@ -170,3 +170,55 @@ are not discovered, ask the agent to follow `.agents/skills/ship-it/SKILL.md`.
 non-draft PRs updated within 24h. `--since all` widens the sweep. Complete clean reviews
 with green CI need no post. The workflow never changes code, approves or merges.
 See [sweep protocol](docs/patrol/sweep.md). Shared materials stay under docs/.
+
+## Relocate duplicate media
+
+Relocation is an explicit mode. Ordinary `python3 -m dup_media ROOT` remains read-only.
+The initial relocation adapter supports **Linux ext4 and tmpfs** with effective root
+and CHOWN, DAC_OVERRIDE, FOWNER and SYS_ADMIN capabilities. It refuses unsupported
+filesystems/platforms and metadata; this does not certify Synology/btrfs support.
+Run first on disposable fixtures, then preview your intended selection:
+
+```sh
+sudo python3 -m dup_media --move-duplicates SOURCE --destination DEST --dry-run
+```
+
+The first relative path in case-sensitive UTF-8/BINARY order stays in each exact group.
+Other paths map to `DEST/<same-relative-path>`. Hardlinks count as separate paths;
+unique/unselected files remain. DEST must be separate from SOURCE: equal/nested roots
+in either direction and symlink ancestors are rejected before scanning. Any incomplete
+scan or preflight conflict prevents all moves. Existing destination entries are never
+overwritten, even when byte-identical. Both modes scan afresh; dry-run is not a reserved
+plan and creates no destination or persistent journal. OS reads may update atime.
+
+For execution, stop **all** other writers/sync/ingest jobs for both trees and ancestors,
+and acknowledge exclusive access. Advisory locks only coordinate this tool; arbitrary
+concurrent writers or mount changes can defeat live-filesystem checks. If exclusive
+access is unavailable, use dry-run only. Choose a **new journal directory** with an
+existing parent outside both trees:
+
+```sh
+sudo python3 -m dup_media --move-duplicates SOURCE --destination DEST \
+  --journal /separate/location/new-operation --exclusive-access
+```
+
+Each duplicate is copied, compared byte-for-byte, checked for required metadata, and
+published without replacement before its matching source path is removed. Mode, owner,
+group, exact mtime and `user.*` attributes are preserved and verified. ACLs, other xattr
+namespaces and unsupported inode flags cause rejection. New inode/creation time,
+ctime/link topology and read-atime effects are exceptions. Free destination capacity
+must accommodate logical bytes, including independent copies of hardlinked/sparse files.
+
+Relocation prints JSONL header/item/error/summary records. Paths are root-relative;
+`planned` items describe intent and `moved` items confirm removal. Exit 0 means complete,
+1 means blocked/partial, 2 means invalid/unsupported invocation/runtime, and 130 means
+cancelled. Keep redirected output outside both trees. A broken pipe stops further work.
+No terminal complete summary means the output does not certify success.
+
+Batches are not atomic and completed moves are not rolled back. Failure may leave extra
+source/destination/staging copies. Retain the owner-only external `journal.sqlite` and
+inspect `items` states (`planned`, `copying`, `staged_verified`, `destination_verified`,
+`source_removed`) alongside actual bytes/identities before manual recovery. A crash
+between a filesystem action and journal commit is ambiguous. Never delete based only
+on an old journal; do not blindly rerun with the same journal or overwrite prior targets.
+There is no automatic resume/undo, source-directory pruning or deletion-only command.
