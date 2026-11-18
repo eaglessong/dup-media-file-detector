@@ -102,8 +102,7 @@ class Relocation:
                 scan.db.execute('INSERT OR REPLACE INTO move_dirs VALUES (?,?,?)', (prefix, *key))
                 os.close(fd)
                 fd = child
-                if attrs(fd):  # user.* on existing dirs is fine; attrs rejects ACLs.
-                    pass
+                attrs(fd)  # user.* on dirs is fine; ACL/security metadata is rejected.
                 if filesystem(fd) != self.dest_fs:
                     raise MoveError('destination_mount_changed', relative)
             return fd
@@ -238,6 +237,18 @@ class Relocation:
                         raise MoveError('source_changed', path)
                     journal.state(path, 'destination_verified', stage=stage, info=stage_id)
                     checkpoint('before_unlink', path)
+                    check_root = self.source.open()
+                    try:
+                        if identity(check_root) != identity(scan.root_fd):
+                            raise MoveError('root_changed', path)
+                    finally:
+                        os.close(check_root)
+                    check_parent = self.dest_parent(scan, path)
+                    try:
+                        if identity(check_parent) != identity(parent):
+                            raise MoveError('destination_changed', path)
+                    finally:
+                        os.close(check_parent)
                     # Output flushing is coordinated by caller before each transfer.
                     source_parent = scan.directory(path.rpartition('/')[0] or '.')
                     try:
@@ -273,7 +284,7 @@ class Relocation:
         runtime()
         mounts([self.source, self.destination])
         if self.journal_path:
-            mounts([Location(self.journal_path)])
+            mounts([self.source, self.destination, Location(self.journal_path)])
         emit(output, schema_version=1, type='header', operation='move_duplicates', dry_run=dry_run)
         moved = byte_count = count = errors = 0
         current = '.'

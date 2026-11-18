@@ -125,16 +125,37 @@ def filesystem(fd):
     return kind
 
 
-def mounts(locations):
-    """Reject subordinate mountpoints, including same-device bind mounts."""
+def mount_records():
     with open('/proc/self/mountinfo', encoding='utf-8') as stream:
         for line in stream:
-            value = line.split()[4]
-            for code, char in [('040', ' '), ('011', '\t'), ('012', '\n'), ('134', '\\')]:
-                value = value.replace('\\' + code, char)
-            for location in locations:
-                if value.startswith(location.path.rstrip('/') + '/'):
-                    raise MoveError('nested_mount_unsupported')
+            fields = line.split()
+            def decode(value):
+                for code, char in [('040', ' '), ('011', '\t'), ('012', '\n'), ('134', '\\')]:
+                    value = value.replace('\\' + code, char)
+                return value
+            yield fields[2], decode(fields[3]), decode(fields[4])
+
+
+def mounts(locations):
+    """Reject subordinate mountpoints and overlapping bind-mount spellings."""
+    records = list(mount_records())  # Bounded by mount count, not media file count.
+    resolved = []
+    for location in locations:
+        candidates = []
+        for device, root, point in records:
+            if point.startswith(location.path.rstrip('/') + '/'):
+                raise MoveError('nested_mount_unsupported')
+            if os.path.commonpath([point, location.path]) == point:
+                candidates.append((len(point), device, root, point))
+        if not candidates:
+            raise MoveError('mount_probe_failed')
+        _, device, root, point = max(candidates)
+        suffix = os.path.relpath(location.path, point)
+        resolved.append((device, os.path.normpath(os.path.join(root, suffix))))
+    for i, (device, path) in enumerate(resolved):
+        for other_device, other_path in resolved[i + 1:]:
+            if device == other_device and os.path.commonpath([path, other_path]) in (path, other_path):
+                raise ValueError('overlapping mount roots')
 
 
 def attrs(fd):

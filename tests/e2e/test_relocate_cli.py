@@ -108,3 +108,14 @@ with patch('dup_media.relocate.checkpoint',checkpoint):
                 # Preserve the first operation and choose fresh targets for second case.
                 self.dest = self.base / 'second-dest'
                 self.journal = self.base / 'second-journal'
+
+    def test_non_root_cli_refuses_hidden_metadata_guarantee(self):
+        if os.getuid() != 0:
+            self.fail('privileged fixture prerequisite')
+        p = subprocess.run([sys.executable, '-m', 'dup_media', '--move-duplicates',
+                            str(self.source), '--destination', str(self.dest), '--dry-run'],
+                           cwd=REPO, capture_output=True, text=True, timeout=30,
+                           user=65534, group=65534, extra_groups=[])
+        self.assertEqual(p.returncode, 2)
+        self.assertFalse(self.dest.exists())
+        self.assertTrue((self.source / 'nested/b.jpg').exists())

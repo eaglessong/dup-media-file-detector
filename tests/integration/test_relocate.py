@@ -242,3 +242,59 @@ class TransferIntegration(MoveFixture):
             self.assertEqual(code, 0, records)
             self.assertEqual((self.dest / 'hard.jpg').read_bytes(), b'a' * 100)
             self.assertEqual((self.source / 'a.jpg').read_bytes(), b'a' * 100)
+
+    def test_bind_mount_alias_and_nested_mount_are_rejected(self):
+        from dup_media.move_fs import mounts
+        alias = self.base / 'alias'
+        alias.mkdir()
+        subprocess.run(['mount', '--bind', str(self.source / 'nested'), str(alias)], check=True)
+        try:
+            with self.assertRaises((MoveError, ValueError)):
+                mounts([Location(self.source), Location(alias)])
+        finally:
+            subprocess.run(['umount', str(alias)], check=True)
+        nested = self.source / 'mount'
+        nested.mkdir()
+        subprocess.run(['mount', '-t', 'tmpfs', '-o', 'size=1m', 'tmpfs', str(nested)], check=True)
+        try:
+            with self.assertRaises(MoveError):
+                mounts([Location(self.source), Location(self.dest)])
+        finally:
+            subprocess.run(['umount', str(nested)], check=True)
+
+    def test_destination_parent_replaced_after_publish_blocks_source_removal(self):
+        def replace(stage, path):
+            if stage == 'before_unlink':
+                (self.dest / 'nested').rename(self.dest / 'old-nested')
+                (self.dest / 'nested').mkdir()
+        with patch('dup_media.relocate.checkpoint', replace):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertEqual((self.dest / 'old-nested/b.jpg').read_bytes(), b'a' * 100)
+
+    def test_case_alias_and_fsync_failure_do_not_erase_sources(self):
+        (self.source / 'nested/B.JPG').write_bytes(b'a' * 100)
+        code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertIn('destination_name_alias', str(records))
+        self.assertFalse(self.dest.exists())
+        (self.source / 'nested/B.JPG').unlink()
+        before = tree(self.source)
+        with patch('dup_media.relocate.os.fsync', side_effect=OSError(errno.EIO, 'synthetic sync failure')):
+            code, records = self.run_move()
+        self.assertEqual(code, 1)
+        self.assertEqual(tree(self.source), before)
+
+    def test_advisory_lock_blocks_second_writer(self):
+        import fcntl
+        from dup_media.scan import DIR_FLAGS
+        fd = os.open(self.source, DIR_FLAGS)
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            code, records = self.run_move()
+            self.assertEqual(code, 1)
+            self.assertEqual(records[-1]['moved'], 0)
+            self.assertFalse(self.dest.exists())
+        finally:
+            os.close(fd)
