@@ -42,5 +42,7 @@ Record assumptions as AGENT decisions; never attribute them to the user.
 Run `python3 scripts/forge.py check` and
 `python3 -m unittest discover -s tests -v` after changing the framework. Keep matching
 forge and code_review skill entry points identical across agent integrations. Use only Python's standard library
-for framework tooling unless a design justifies a new dependency. The application uses
+for framework tooling unless a design justifies a new dependency. Forge's shared prompts
+and protocols live in docs/forge/; bind prompts with scripts/forge.py render-prompt and
+validate references/contracts with scripts/forge.py check. The application uses
 Python 3.11+ with SQLite and POSIX filesystem APIs; see CONTRIBUTING.md.

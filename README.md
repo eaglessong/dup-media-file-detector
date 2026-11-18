@@ -100,3 +100,27 @@ requested command name; it differs from the skill-creator's hyphen naming conven
 See the [review roles](docs/code-review/roles.md) and
 [evidence/report contract](docs/code-review/report.md). During forge, this supplies
 ASSAY; the implementing agent then handles fixes and verification separately.
+
+## Full forge workflow
+
+The forge skill includes the full [phase workflow](docs/WORKFLOW.md), five reconnaissance
+prompts, four ASSAY audit prompts, and supporting protocols in [docs/forge](docs/forge/PORTING.md).
+Use a feature brief or design as input:
+
+```text
+/forge implement the feature described in docs/design/my-feature.md
+```
+
+The agent explores, clarifies consequential choices, designs, implements, verifies,
+reviews using code_review, and delivers a PR. It maintains your artifacts and stops
+before merging unless you authorize that merge. Parallel roles are used when supported;
+sequential passes are labelled honestly. Synthetic filesystem data replaces mandatory
+production telemetry, and captures apply only to actual parser/platform/external-format
+boundaries. No cloud/token service or personal media library is required by the framework.
+
+For agent authors, `python3 scripts/forge.py render-prompt ROLE --context FILE.json`
+binds a prompt using the [input/evidence contract](docs/forge/references/prompt-contract.md).
+It does not launch agents. Framework validation catches missing resources, broken local
+material links, template-input drift and mismatched skill entry points; it cannot prove
+workflow execution or product correctness. See the [adaptation map](docs/forge/PORTING.md)
+for what was ported and what was deliberately replaced.
