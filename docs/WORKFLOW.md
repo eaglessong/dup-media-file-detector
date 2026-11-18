@@ -221,6 +221,16 @@ report is not permission to post comments or merge. Leave the PR unmerged unless
 user authorizes this delivery's merge. Report the PR URL, what can be tried, decisions,
 check results and material limitations.
 
+## Optional handoff to ship-it
+
+Forge covers PR creation and verification. For ongoing feedback/CI repair through merge,
+use `/ship-it PR_NUMBER` only when the user's current request explicitly authorizes
+shipping that identified PR. Otherwise `/ship-it PR_NUMBER --no-merge` prepares and
+verifies without merging. See the [iteration playbook](ship-it/iteration-playbook.md).
+`code_review` remains review-only; ship-it owns separately authorized replies, scoped
+fixes/pushes and final head-pinned merge. A saved state or forge invocation does not
+authorize crossing that boundary. No release/deployment or protection bypass is implied.
+
 ## Resume and automation limits
 
 On resume read the artifacts and Git/PR state, reuse existing evidence at its recorded

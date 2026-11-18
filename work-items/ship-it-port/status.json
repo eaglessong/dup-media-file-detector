@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "feature": "ship-it-port",
+  "kind": "documentation",
+  "phase": "stamp",
+  "design": "docs/design/ship-it-port.md",
+  "blockers": [],
+  "verification": [
+    {
+      "command": "python3 scripts/forge.py check",
+      "scope": "framework",
+      "outcome": "passed",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -m unittest discover -s tests -q",
+      "scope": "framework",
+      "outcome": "passed",
+      "exit_code": 0
+    }
+  ],
+  "review": {
+    "mode": "independent",
+    "evidence": "work-items/ship-it-port/evidence.md",
+    "unresolved_blocking_findings": []
+  }
+}

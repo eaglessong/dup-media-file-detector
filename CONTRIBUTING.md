@@ -35,3 +35,9 @@ prompt contract for `scripts/forge.py render-prompt ROLE --context FILE.json`. C
 must preserve declared input bindings, relative material links and paired skill entry
 points. Run framework validation/unit tests and evaluate changed execution instructions
 in a disposable scenario; structural checks alone do not prove agent behavior.
+
+Ship-it contributors: shared playbook/state guidance lives in `docs/ship-it/` and its
+local helper is `scripts/ship_it.py`. Framework test discovery runs the helper's tests.
+Keep no-merge durable and never treat local state as remote merge authorization/proof.
+Behavioral skill evaluation must use offline fixtures; do not merge a real PR merely
+to test the port. No service credentials are needed for local framework tests.
