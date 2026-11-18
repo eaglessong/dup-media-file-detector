@@ -12,7 +12,7 @@ Read [the shared leaf/evidence contract](../references/prompt-contract.md) and o
 the digest's evidence pointers. Return role `scale-stress-reviewer`, instrument, inspected scope,
 receipts, supported findings with trigger/impact/severity/blocking reason,
 assumptions, limitations and the evidence needed to settle questions. Use the existing
-code_review grounding/severity contract. No findings is allowed with scope receipts.
+code-review grounding/severity contract. No findings is allowed with scope receipts.
 No edits, tests, candidate-code execution, recursive agents or skill invocation.
 
 ## Task

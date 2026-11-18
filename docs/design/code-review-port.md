@@ -1,4 +1,4 @@
-# Local code_review skill
+# Local code-review skill
 
 **Status:** Implemented — prepared for owner review
 
@@ -10,7 +10,7 @@ integration and E2E checks documented in CONTRIBUTING.md.
 
 ## Requirements and non-goals
 
-- R1: Expose the requested `/code_review` name in both agent skill directories.
+- R1: Expose the requested `/code-review` name in both agent skill directories.
 - R2: Review working changes, branches, patches, or GitHub PRs against the correct tree.
 - R3: Preserve specialist analysis, adversarial challenge and evidence-gated synthesis.
 - R4: Check local media/CLI/framework contracts without importing internal infrastructure.
@@ -47,8 +47,10 @@ Client command discovery and independent-agent availability vary; document fallb
 - USER: “port and adept /aether_review from Cowork to this GitHub repo. name it /code_review”.
 - AGENT: functional reviewer roles replace named internal personas and bot accounts.
 - AGENT: share references rather than duplicate all role text across agent integrations.
-- AGENT: keep the exact underscore command name requested by the user despite the
-  skill-creator validator's hyphen naming convention; do not silently rename it.
+- USER (2026-11-18): “rename the skill 'code_review' to 'code-review'”. This supersedes
+  the original underscore command name quoted above and the original AGENT decision
+  to preserve that spelling. Both skill folders, frontmatter and invocation docs now
+  use `code-review`; review behavior and authority boundaries are unchanged.
 - AGENT: use the existing contribution test commands and no new project dependencies.
 
 ## Verification and delivery

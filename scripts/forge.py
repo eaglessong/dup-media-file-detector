@@ -29,7 +29,7 @@ REQUIRED = (
     "docs/templates/evidence.md", "docs/templates/adr.md", "docs/design/first-scan.md",
     ".agents/skills/forge/SKILL.md", ".claude/skills/forge/SKILL.md",
     ".github/workflows/framework.yml", ".github/PULL_REQUEST_TEMPLATE.md",
-    ".agents/skills/code_review/SKILL.md", ".claude/skills/code_review/SKILL.md",
+    ".agents/skills/code-review/SKILL.md", ".claude/skills/code-review/SKILL.md",
     "docs/code-review/roles.md", "docs/code-review/report.md", "docs/forge/PORTING.md",
     ".agents/skills/ship-it/SKILL.md", ".claude/skills/ship-it/SKILL.md",
     "docs/ship-it/iteration-playbook.md", "docs/ship-it/state-and-evidence.md",
@@ -169,7 +169,7 @@ def check(root: Path) -> list[str]:
     for name in REQUIRED:
         if not (root / name).is_file():
             errors.append(f"Missing required file: {name}")
-    for skill in ("forge", "code_review", "ship-it"):
+    for skill in ("forge", "code-review", "ship-it"):
         a = root / f".agents/skills/{skill}/SKILL.md"
         b = root / f".claude/skills/{skill}/SKILL.md"
         if a.is_file() and b.is_file() and a.read_bytes() != b.read_bytes():

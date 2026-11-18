@@ -1,6 +1,6 @@
 # Review roles
 
-Used by `/code_review`. Each selected role reads the shared evidence/report contract
+Used by `/code-review`. Each selected role reads the shared evidence/report contract
 in `docs/code-review/report.md`. These are functional checklists adapted from Cowork's
 reviewer personas, not impersonations of individual people or external review bots.
 Read the actual changed files and relevant callers, not just hunks. For large files,

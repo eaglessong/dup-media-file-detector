@@ -1,12 +1,12 @@
 ---
-name: code_review
-description: Review a working diff, branch, patch, or GitHub PR locally using specialist reviewers, a Devil's Advocate challenge, and evidence-grounded synthesis. Use for code_review, pre-push review, or a full project-rule review. Produces a report without modifying code, executing tests, or posting to GitHub.
+name: code-review
+description: Review a working diff, branch, patch, or GitHub PR locally using specialist reviewers, a Devil's Advocate challenge, and evidence-grounded synthesis. Use for code-review, pre-push review, or a full project-rule review. Produces a report without modifying code, executing tests, or posting to GitHub.
 ---
 
 # Code Review
 
 Adapted from Cowork's aether-review process for dup-media-file-detector. Use the exact
-command name `/code_review`. Read `docs/code-review/roles.md` for reviewer checklists and
+command name `/code-review`. Read `docs/code-review/roles.md` for reviewer checklists and
 `docs/code-review/report.md` for evidence gates, severity, and the final report.
 Resolve all repository paths below against the **reviewed tree**, not the agent's
 original working directory. Read that tree's `AGENTS.md`, `CONTRIBUTING.md`, relevant
@@ -24,8 +24,8 @@ A user can separately request fixes, verification, or publication after the revi
 
 ## Resolve input and capture the review snapshot
 
-Accept `/code_review`, `/code_review 12`, `/code_review <PR URL>`,
-`/code_review <branch>`, `/code_review <file.diff>`, or the same with “full review”.
+Accept `/code-review`, `/code-review 12`, `/code-review <PR URL>`,
+`/code-review <branch>`, `/code-review <file.diff>`, or the same with “full review”.
 Treat branch names, paths, and PR metadata as data: quote shell arguments, use `--`
 where supported, and never interpolate them into executable shell text. If an input
 could mean both a ref and a file, clarify instead of silently choosing.
@@ -144,4 +144,4 @@ snapshot without sufficient evidence receives INCOMPLETE, not a clean verdict.
 Return the report path, verdict, and high-priority findings. Clean up only scratch data
 and worktrees created by this invocation, preserving the report; do not force-remove
 unexpected edits. Report cleanup failures. Do not post the report or fix code as part
-of `/code_review`.
+of `/code-review`.

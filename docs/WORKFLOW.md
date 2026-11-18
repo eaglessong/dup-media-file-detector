@@ -27,8 +27,8 @@ Classify the change before dispatch; record the reason in evidence:
 
 | Track | Scope | PROSPECT | ASSAY |
 | --- | --- | --- | --- |
-| LIGHT | Narrow, one module/surface, roughly <150 implementation lines; no CLI/schema/default/dependency/CI/skill changes or safety boundary | Combined history/architecture/test reconnaissance + premise challenger | code_review synthesis with implementation challenger + test-realism audit |
-| FULL | Anything else; always file traversal, comparison/proof, SQLite durability, privacy/destructive behavior, or agent/verification instructions | Five distinct scouts | code_review Full + four forge audit instruments, mapped onto reviewer passes |
+| LIGHT | Narrow, one module/surface, roughly <150 implementation lines; no CLI/schema/default/dependency/CI/skill changes or safety boundary | Combined history/architecture/test reconnaissance + premise challenger | code-review synthesis with implementation challenger + test-realism audit |
+| FULL | Anything else; always file traversal, comparison/proof, SQLite durability, privacy/destructive behavior, or agent/verification instructions | Five distinct scouts | code-review Full + four forge audit instruments, mapped onto reviewer passes |
 
 A prose-only correction may use a direct edit and suitable check; no ceremonial feature
 run is needed. LIGHT and FULL keep the same applicable design/evidence/safety gates.
@@ -167,18 +167,18 @@ changed tests/assertions, fixture provenance, exact verification runs and enviro
 scale measurements/assumptions, scout conclusions and limitations. Pointers are not
 proof: reviewers must open the cited material.
 
-Use `/code_review` Full (or its instructions) for the actual role routing, Devil's
+Use `/code-review` Full (or its instructions) for the actual role routing, Devil's
 Advocate challenge, grounding gates and synthesized report. Code review remains
-review-only. Attach the forge seat tasks below to the relevant selected code_review
-roles, or run them as scoped leaf audits before supplying their results to code_review.
+review-only. Attach the forge seat tasks below to the relevant selected code-review
+roles, or run them as scoped leaf audits before supplying their results to code-review.
 Do not launch a second identical full panel; if a digest already covers an instrument,
 verify and reuse it. LIGHT uses only the two forge
-challenger/test-realism instruments in addition to code_review's own required routing;
-it does not disable code_review's mandatory reviewers or mislabel semantic work as Quick.
+challenger/test-realism instruments in addition to code-review's own required routing;
+it does not disable code-review's mandatory reviewers or mislabel semantic work as Quick.
 
 | Forge seat | Instrument / integration |
 | --- | --- |
-| Implementation challenger | Design/decision claims vs actual changed paths; [prompt](forge/prompts/devils-advocate.md). Attach to architecture/deep-read, separate from code_review's final draft challenger. |
+| Implementation challenger | Design/decision claims vs actual changed paths; [prompt](forge/prompts/devils-advocate.md). Attach to architecture/deep-read, separate from code-review's final draft challenger. |
 | Scale stress | Measured workload evidence vs resource behavior; [prompt](forge/prompts/scale-stress-reviewer.md). Attach to architecture; unmeasured estimates remain assumptions. |
 | Diagnostics/security | CLI errors, path/content privacy, containment, external I/O; [prompt](forge/prompts/telemetry-security-reviewer.md). Attach to deep-read/repository-rules. |
 | Test realism | Every changed/new test's claimed behavior vs assertions/fixtures; [prompt](forge/prompts/test-realism-auditor.md). Attach to test-impact. |
@@ -227,7 +227,7 @@ Forge covers PR creation and verification. For ongoing feedback/CI repair throug
 use `/ship-it PR_NUMBER` only when the user's current request explicitly authorizes
 shipping that identified PR. Otherwise `/ship-it PR_NUMBER --no-merge` prepares and
 verifies without merging. See the [iteration playbook](ship-it/iteration-playbook.md).
-`code_review` remains review-only; ship-it owns separately authorized replies, scoped
+`code-review` remains review-only; ship-it owns separately authorized replies, scoped
 fixes/pushes and final head-pinned merge. A saved state or forge invocation does not
 authorize crossing that boundary. No release/deployment or protection bypass is implied.
 

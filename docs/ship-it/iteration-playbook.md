@@ -21,7 +21,7 @@ runner. See [adaptation map](PORTING.md) for what differs from Cowork.
    pending, not proof of no conflict. Fork PR execution is outside this starter's scope;
    stop for an explicitly reviewed fork plan rather than run its code with credentials.
 4. If the branch has no PR, use forge STAMP: artifacts, local behavioral checks and
-   code_review before creating a PR using the repository template. Preserve the user's
+   code-review before creating a PR using the repository template. Preserve the user's
    work. Creation of a draft is allowed for genuinely incomplete work; GitHub Actions
    can run on drafts, so do not import the source's “draft means no CI” assumption.
    Mark ready only after the author's review/checks are complete. Drafts never merge.
