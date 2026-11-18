@@ -10,7 +10,7 @@ from contextlib import contextmanager
 
 from .scan import Scan, DIR_FLAGS, CHUNK, signature
 from .move_fs import (Location, MoveError, absolute, overlap, runtime, filesystem,
-                      mounts, scratch_outside, attrs, metadata, apply_metadata, identity, sync_file, metadata_policy)
+                      mounts, scratch_outside, attrs, metadata, apply_metadata, identity, sync_file, metadata_policy, check_delete, check_create)
 from .move_journal import Journal
 
 
@@ -164,6 +164,13 @@ class Relocation:
                 if old and old[0] != prefix:
                     raise MoveError('destination_name_alias', path)
                 scan.db.execute('INSERT OR IGNORE INTO move_names VALUES (?,?)', (key, prefix))
+            # Check the real existing creation ancestor without making probe files.
+            mapped = Location(os.path.join(self.destination.path, *parts[:-1]))
+            ancestor = mapped.nearest()
+            try:
+                check_create(ancestor, directories=mapped.existing < len(mapped.parts), path=path)
+            finally:
+                os.close(ancestor)
             # Record all missing parents even when the destination root doesn't exist.
             try:
                 fd = self.dest_parent(scan, path)
@@ -184,6 +191,7 @@ class Relocation:
             try:
                 if os.fstatvfs(parent).f_flag & os.ST_RDONLY:
                     raise MoveError('source_readonly', path)
+                check_delete(parent, parts[-1], path)
             finally:
                 os.close(parent)
         if total > available:
@@ -346,6 +354,7 @@ class Relocation:
                         filesystem(jf)
                         if os.fstatvfs(jf).f_flag & os.ST_RDONLY:
                             raise MoveError('journal_readonly')
+                        check_create(jf, directories=True, kind='journal')
                     finally:
                         os.close(jf)
                 count = scan.db.execute('SELECT COUNT(*) FROM move_plan').fetchone()[0]

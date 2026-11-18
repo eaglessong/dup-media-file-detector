@@ -71,3 +71,26 @@ Try normal-user macOS APFS dry-run from repository:
 Header identifies macos-data-only; resource forks block, other metadata is not copied.
 Execution additionally needs a new external --journal and --exclusive-access.
 No merge authorized/performed. complete means review-ready, not merged.
+
+
+## PR8 follow-up — F1 reopened
+Review https://github.com/eaglessong/dup-media-file-detector/pull/8#pullrequestreview-5951648652
+at4318200 reports static permission omission. Current USER requests forge follow-up;
+no merge authorized. Track FULL (filesystem safety); reuse full earlier scouts and add
+five scoped instruments via two read-only scouts. Architecture/premise confirms Darwin
+extended faccessat, test/history/scale maps real ACL/sticky/mode fixtures; O(plan×depth)
+checks preserve disk-backed/bounded-memory design. No new consequential USER question.
+Design/ADR-005 authored before fix. Native probes confirm source0555/deleteACL and
+add_file ACL denial (errno13), while add_subdir can remain allowed. No application fix
+verification yet. Privileged foreign-sticky fixture remains actual macOS CI requirement.
+
+
+Follow-up TEMPER: native frameworkcheck passes;29 framework/application tests pass;
+compile/help pass. Full integration89:56pass/33skips (29Linux,1encoding,2APFS-image,
+1foreign-sticky); E2E28:19pass/9skips (7Linux,1image,1foreign-sticky). Logs retained in
+.agent-local/pr8-permissions/. Initial new test run correctly exposed a test-contract
+mistake: journal is not supplied in dry-run, so journal-only checks now apply only to
+execution; initial optional sudo setup raised sandbox OSError, now explicitly skips
+locally but fails required CI. No failure hidden as a pass. Existing modes/ACL cases,
+whole-base snapshots and allowed ACL/sticky controls pass after correction. Native
+foreign-owned sticky and cross-volume regression remain mandatory actual CI gates.

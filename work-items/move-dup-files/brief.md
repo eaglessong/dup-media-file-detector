@@ -45,3 +45,7 @@ remains; filesystem capability probes are future implementation prerequisites.
    copies and durable evidence to recover honestly from partial completion.
 
 See [design](../../docs/design/move-dup-files.md) and [evidence](evidence.md).
+
+
+PR8 F1 follow-up resumes implementation to close static permission preflight; see
+macOS work-item evidence and ADR-005. No merge or real-library operation authorized.

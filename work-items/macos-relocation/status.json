@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature": "macos-relocation",
   "kind": "application",
-  "phase": "complete",
+  "phase": "temper",
   "design": "docs/design/macos-relocation.md",
   "blockers": [],
   "verification": [
@@ -39,37 +39,21 @@
     {
       "scope": "integration",
       "outcome": "passed",
-      "command": "REQUIRE_MAC_MOVE_TESTS=1 MOVE_CROSS_ROOT=<disposable APFS volume> python3 -m unittest discover -s tests/integration -p 'test_macos*' -v",
+      "command": "python3 -m unittest discover -s tests/integration -v (local;33 explicit skips)",
       "exit_code": 0
     },
     {
       "scope": "e2e",
       "outcome": "passed",
-      "command": "REQUIRE_MAC_MOVE_TESTS=1 MOVE_CROSS_ROOT=<disposable APFS volume> python3 -m unittest discover -s tests/e2e -p 'test_macos*' -v",
-      "exit_code": 0
-    },
-    {
-      "scope": "application",
-      "outcome": "passed",
-      "command": "GitHub Actions44248249425: Linux+macOS Python3.11/3.13 application jobs at43b7ae6",
-      "exit_code": 0
-    },
-    {
-      "scope": "integration",
-      "outcome": "passed",
-      "command": "GitHub Actions44248249425: privileged Linux31 and native APFS31 integration tests per Python version",
-      "exit_code": 0
-    },
-    {
-      "scope": "e2e",
-      "outcome": "passed",
-      "command": "GitHub Actions44248249425: privileged Linux8 and native APFS7 entry-point tests per Python version",
+      "command": "python3 -m unittest discover -s tests/e2e -v (local;9 explicit skips)",
       "exit_code": 0
     }
   ],
   "review": {
-    "mode": "independent",
+    "mode": "pending",
     "evidence": "work-items/macos-relocation/evidence.md",
-    "unresolved_blocking_findings": []
+    "unresolved_blocking_findings": [
+      "PR8 F1: static directory-permission preflight"
+    ]
   }
 }

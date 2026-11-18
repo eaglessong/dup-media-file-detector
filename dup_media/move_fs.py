@@ -227,7 +227,22 @@ def metadata_policy():
     return 'macos-data-only' if sys.platform == 'darwin' else 'linux-strict'
 
 
+def check_delete(fd, leaf, path):
+    if not os.access('.', os.W_OK | os.X_OK, dir_fd=fd, effective_ids=True):
+        raise MoveError('source_permission_denied', path)
+    parent = os.fstat(fd)
+    if parent.st_mode & stat.S_ISVTX and os.geteuid() not in (0, parent.st_uid):
+        victim = os.stat(leaf, dir_fd=fd, follow_symlinks=False)
+        if os.geteuid() != victim.st_uid:
+            raise MoveError('source_permission_denied', path)
+
+
+def check_create(fd, directories=False, kind='destination', path='.'):
+    if not os.access('.', os.W_OK | os.X_OK, dir_fd=fd, effective_ids=True):
+        raise MoveError(kind + '_permission_denied', path)
+
+
 # Isolate Darwin contracts; retain strict Linux implementations unchanged above.
 if sys.platform == 'darwin':
     from .move_darwin import (filesystem, mounts, scratch_outside, attrs, metadata,
-                              apply_metadata, sync_file)
+                              apply_metadata, sync_file, check_delete, check_create)

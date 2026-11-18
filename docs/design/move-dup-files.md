@@ -346,3 +346,11 @@ Linux delivery. [macOS design](macos-relocation.md) and [ADR-004](../decisions/0
 supersede those restrictions only for 64-bit macOS APFS: ordinary-user data-stream-only
 relocation with resource-fork rejection; other metadata may be omitted by USER choice.
 Linux preservation remains strict. Shared safety and journal requirements still apply.
+
+
+### PR8 F1 correction
+Static mutation permissions are part of global preflight, including ordinary-user
+APFS ACL/sticky semantics and destination/journal creation ancestors. See the macOS
+design R6 and [ADR-005](../decisions/005-relocation-permission-preflight.md). No write
+probes occur during dry-run. Inheritable ACL creation layouts are explicitly rejected;
+subsequent permission changes retain the documented partial-failure contract.

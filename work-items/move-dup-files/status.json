@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature": "move-dup-files",
   "kind": "application",
-  "phase": "complete",
+  "phase": "temper",
   "design": "docs/design/move-dup-files.md",
   "blockers": [],
   "verification": [
@@ -39,31 +39,21 @@
     {
       "scope": "integration",
       "outcome": "passed",
-      "command": "python3 -m unittest discover -s tests/integration -v",
+      "command": "python3 -m unittest discover -s tests/integration -v (local;33 explicit skips)",
       "exit_code": 0
     },
     {
       "scope": "e2e",
       "outcome": "passed",
-      "command": "python3 -m unittest discover -s tests/e2e -v",
+      "command": "python3 -m unittest discover -s tests/e2e -v (local;9 explicit skips)",
       "exit_code": 0
-    },
-    {
-      "scope": "integration",
-      "command": "sudo env REQUIRE_MOVE_TESTS=1 MOVE_CROSS_ROOT=\"$cross_root\" \"$python_path\" -m unittest discover -s tests/integration -p 'test_relocate*.py' -v",
-      "exit_code": 0,
-      "outcome": "passed"
-    },
-    {
-      "scope": "e2e",
-      "command": "sudo env REQUIRE_MOVE_TESTS=1 MOVE_CROSS_ROOT=\"$cross_root\" \"$python_path\" -m unittest discover -s tests/e2e -p 'test_relocate*.py' -v",
-      "exit_code": 0,
-      "outcome": "passed"
     }
   ],
   "review": {
-    "mode": "independent",
+    "mode": "pending",
     "evidence": "work-items/move-dup-files/evidence.md",
-    "unresolved_blocking_findings": []
+    "unresolved_blocking_findings": [
+      "PR8 F1: static directory-permission preflight"
+    ]
   }
 }

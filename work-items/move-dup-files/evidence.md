@@ -251,3 +251,8 @@ codex/move-dup-files; final handoff reports actual PR/head/check state.
 User subsequently authorized macOS support with metadata relaxation and resource-fork
 rejection. See work-items/macos-relocation/evidence.md and ADR-004 for this separate
 work item extending PR8. Earlier Linux evidence remains historical at its cited revision.
+
+
+PR8 F1 follow-up uses scoped FULL forge instruments to fix static effective permissions;
+see work-items/macos-relocation/evidence.md for exact new commands/skips and ADR-005.
+Historical full-source evidence above remains pinned; follow-up verification pending CI.

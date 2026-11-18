@@ -42,3 +42,41 @@ Native macOS27.2.1 arm64 Python3.13:31 integration+7 entry-point E2E passed,
 including a distinct APFS volume. Linux/macOS Python3.11/3.13 CI passed at43b7ae6;
 see work-item evidence for exact run URLs, skips, review and bounded measurements.
 No hardware power-loss or arbitrary-concurrent-writer certification.
+
+
+## PR8 F1 follow-up — permission preflight (AGENT, before implementation)
+
+Review5951648652 identifies static readable-but-unwritable directories passing the
+shared global preflight. Existing authorization is sufficient; no new USER policy is
+needed. Reuse earlier full reconnaissance; scoped five-instrument scouts confirm the
+gap and normal-user fixture requirements. Native coordinator probes on APFS confirm
+Darwin `faccessat` accepts extended modes with effective credentials and rejects0555,
+ACL delete denial and ACL add-file denial while allowing unrelated add-directory rights.
+Installed SDK and Apple public XNU vfs_syscalls.c access1/faccessat_internal establish
+_DELETE_OK parent-aware ACL/sticky authorization, rather than manual mode parsing.
+
+R6: Before any destination/journal mutation, check each victim's deletion permission,
+each mapped destination parent's creation/cleanup capability (or nearest ancestor's
+subdirectory creation if missing), and external journal parent's subdirectory creation.
+Use descriptor-relative native effective-credential checks; no probe files. Mac uses
+_DELETE_OK on victim, _EXECUTE_OK plus _WRITE_OK/_RMFILE_OK for staging in an existing
+parent, or _APPEND_OK for a missing suffix. Linux uses effective access with its existing
+privileged/strict adapter gates. Existing namespace pins and execution checks remain.
+Errors source_permission_denied, destination_permission_denied or journal_permission_denied
+produce exit1/incomplete with zero moves. Paths remain root-relative (journal uses '.').
+
+Conservative boundary: new descendants can inherit ACLs not represented by access on
+the existing parent. Reject creation parents with file/directory-inheritable ACL entries
+as permission_inheritance_unsupported; allow non-inheritable ACLs when native action
+checks permit. This explicit AGENT fail-closed restriction avoids simulating ACL inheritance
+or mutating dry-run trees. Revisit when faithful inheritance support is requested.
+
+Acceptance/tests: both integration and shipped CLI cover a later0555 victim after a
+writable group, existing destination0555, missing destination suffix, source ACL delete
+denial, destination add-file/add-directory denial, external journal parent denial,
+inheritable ACL refusal, and positive non-inheritable ACL/sticky-owner controls. Dry-run has no journal argument, so journal permissions apply only to execution. Negative
+cases must yield zero moves, identical source/destination manifests and no new operation
+directory/staging. Real foreign-owned sticky fixture uses privileged setup only, then
+runs application under ordinary user; required CI stage fails if setup absent. Local
+lack of passwordless setup is an explicit skip/gap, closed by actual macOS CI. Synthetic
+data only; no real media. Test-data plan ADEQUATE, native foreign-sticky run pending CI.

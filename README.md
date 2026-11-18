@@ -242,3 +242,11 @@ Use canonical paths without symlink ancestors; `/private/tmp` rather than `/tmp`
 JSONL header identifies the metadata policy. Linux retains strict metadata requirements.
 Keep exclusive control of source/destination/journal and their ancestors throughout execution.
 No automatic recovery: inspect the external journal after interrupted/partial operations.
+
+
+Relocation preflight checks current effective deletion/creation permissions for the full
+plan before any destination/journal mutation. macOS uses native ACL/sticky-aware checks;
+readability alone does not establish move permission. Inheritable ACLs on creation
+parents are conservatively rejected (`permission_inheritance_unsupported`); existing
+non-inheritable ACLs are allowed when required operations are authorized. Preview does
+not reserve future permissions; an execution-only journal parent is checked at execution.

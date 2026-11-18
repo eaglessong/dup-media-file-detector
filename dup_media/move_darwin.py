@@ -111,3 +111,65 @@ def apply_metadata(fd, expected):
 def sync_file(fd):
     os.fsync(fd)
     fcntl.fcntl(fd, 51)  # F_FULLFSYNC; fail closed if storage cannot honor request.
+
+
+def access_action(fd, name, mode, code, path):
+    """Ask Darwin authorization with effective credentials and the actual parent."""
+    from .move_fs import MoveError
+    api = libc()
+    api.faccessat.argtypes = [ctypes.c_int, ctypes.c_char_p, ctypes.c_int, ctypes.c_int]
+    if api.faccessat(fd, os.fsencode(name), mode, 0x10 | 0x20) != 0:
+        raise MoveError(code, path)  # AT_EACCESS | AT_SYMLINK_NOFOLLOW
+
+
+def no_inheritable_acl(fd, path):
+    """Do not predict authorization on not-yet-created inherited descendants."""
+    import errno
+    from .move_fs import MoveError
+    api = libc()
+    api.acl_get_fd_np.argtypes = [ctypes.c_int, ctypes.c_int]
+    api.acl_get_fd_np.restype = ctypes.c_void_p
+    api.acl_valid.argtypes = [ctypes.c_void_p]
+    api.acl_get_entry.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_void_p)]
+    api.acl_get_flagset_np.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_void_p)]
+    api.acl_get_flag_np.argtypes = [ctypes.c_void_p, ctypes.c_int]
+    api.acl_free.argtypes = [ctypes.c_void_p]
+    acl = api.acl_get_fd_np(fd, 0x100)  # ACL_TYPE_EXTENDED
+    if not acl:
+        if ctypes.get_errno() == errno.ENOENT:  # Existing fd, no attached ACL.
+            return
+        raise MoveError('permission_probe_failed', path)
+    try:
+        if api.acl_valid(acl) != 0:
+            raise MoveError('permission_probe_failed', path)
+        which = 0  # ACL_FIRST_ENTRY, then ACL_NEXT_ENTRY=-1.
+        while True:
+            entry = ctypes.c_void_p()
+            if api.acl_get_entry(acl, which, ctypes.byref(entry)) != 0:
+                if ctypes.get_errno() == errno.EINVAL:  # End of valid ACL.
+                    break
+                raise MoveError('permission_probe_failed', path)
+            which = -1
+            flags = ctypes.c_void_p()
+            if api.acl_get_flagset_np(entry, ctypes.byref(flags)) != 0:
+                raise MoveError('permission_probe_failed', path)
+            for flag in (1 << 5, 1 << 6):  # FILE_INHERIT, DIRECTORY_INHERIT
+                value = api.acl_get_flag_np(flags, flag)
+                if value < 0:
+                    raise MoveError('permission_probe_failed', path)
+                if value:
+                    raise MoveError('permission_inheritance_unsupported', path)
+    finally:
+        api.acl_free(acl)
+
+
+def check_delete(fd, leaf, path):
+    access_action(fd, leaf, 1 << 12, 'source_permission_denied', path)  # _DELETE_OK
+
+
+def check_create(fd, directories=False, kind='destination', path='.'):
+    # Existing staging parents need add-file + remove-child + search; missing
+    # suffixes need add-subdirectory + search. New private dirs have no inherited ACL.
+    mode = (1 << 11) | ((1 << 13) if directories else (1 << 10) | (1 << 14))
+    access_action(fd, '.', mode, kind + '_permission_denied', path)
+    no_inheritable_acl(fd, path)

@@ -190,3 +190,53 @@ for name in [
     'test_sqlite_spill_directory_is_pinned_outside_both_trees',
 ]:
     setattr(MacRelocation, name, getattr(portable.TransferIntegration, name))
+
+
+class MacPermissionPreflight(MacFixture):
+    def test_static_mode_acl_and_inheritance_block_whole_batch(self):
+        from tests.macos_fixtures import PERMISSION_CASES, namespace_snapshot, permission_tree
+        self.assertNotEqual(os.geteuid(), 0, 'permission contract needs ordinary user')
+        for case in PERMISSION_CASES:
+            with self.subTest(case=case), permission_tree(case) as fixture:
+                before = namespace_snapshot(fixture.source)
+                dest_before = namespace_snapshot(fixture.dest) if fixture.dest.exists() else None
+                all_before = namespace_snapshot(fixture.base)
+                for dry in ((False,) if case.startswith('journal_') else (True, False)):
+                    code, records = fixture.run(dry)
+                    self.assertEqual(code, 1, records)
+                    self.assertIn(fixture.expected, str(records))
+                    self.assertEqual(records[-1]['moved'], 0)
+                    self.assertEqual(namespace_snapshot(fixture.source), before)
+                    self.assertEqual(namespace_snapshot(fixture.dest) if fixture.dest.exists() else None,
+                                     dest_before)
+                    self.assertFalse(fixture.journal.exists())
+                    self.assertEqual(namespace_snapshot(fixture.base), all_before)
+
+    def test_foreign_owned_sticky_victim_blocks_without_moves(self):
+        from tests.macos_fixtures import namespace_snapshot, permission_tree
+        self.assertNotEqual(os.geteuid(), 0)
+        with permission_tree('sticky_foreign') as fixture:
+            before = namespace_snapshot(fixture.source)
+            for dry in (True, False):
+                code, records = fixture.run(dry)
+                self.assertEqual(code, 1, records)
+                self.assertIn('source_permission_denied', str(records))
+                self.assertEqual(records[-1]['moved'], 0)
+                self.assertEqual(namespace_snapshot(fixture.source), before)
+                self.assertFalse(fixture.dest.exists())
+                self.assertFalse(fixture.journal.exists())
+
+    def test_sticky_owner_and_acl_granted_delete_are_allowed(self):
+        from tests.macos_fixtures import permission_tree
+        self.assertNotEqual(os.geteuid(), 0)
+        for case in ('sticky_owner', 'acl_grants_delete', 'creation_acl'):
+            with self.subTest(case=case), permission_tree(case) as fixture:
+                code, records = fixture.run(True)
+                self.assertEqual(code, 0, records)
+                self.assertEqual(records[-1]['planned'], 2)
+                code, records = fixture.run(False)
+                self.assertEqual(code, 0, records)
+                self.assertEqual(records[-1]['moved'], 2)
+                self.assertEqual((fixture.source / 'c.jpg').read_bytes(), b'second exact group')
+                self.assertFalse((fixture.source / 'zz-blocked/second.jpg').exists())
+                self.assertEqual((fixture.dest / 'zz-blocked/second.jpg').read_bytes(), b'second exact group')
