@@ -418,3 +418,44 @@ class TransferIntegration(MoveFixture):
                 self.assertFalse(self.journal.exists())
             finally:
                 subprocess.run(['umount', str(alias)], check=True)
+
+    def test_sqlite_spill_directory_is_pinned_outside_both_trees(self):
+        self.dest.mkdir()
+        before_source = self.source.stat()
+        before_dest = self.dest.stat()
+        original = Scan.run
+        def spill(scan):
+            original(scan)
+            self.assertEqual(scan.db.execute('PRAGMA temp_store_directory').fetchone(), (scan.temp.name,))
+            scan.db.execute('CREATE TABLE spill(value TEXT)')
+            scan.db.executemany('INSERT INTO spill VALUES (?)', (('x' * 1024 + str(i),) for i in range(12000)))
+            self.assertEqual(sum(1 for _ in scan.db.execute('SELECT value FROM spill ORDER BY substr(value,1000)')), 12000)
+        with patch.dict(os.environ, {'SQLITE_TMPDIR': str(self.dest)}), patch.object(Scan, 'run', spill):
+            code, records = self.run_move(dry=True)
+        self.assertEqual(code, 0, records)
+        self.assertEqual(list(self.dest.iterdir()), [])
+        self.assertEqual(self.source.stat().st_mtime_ns, before_source.st_mtime_ns)
+        self.assertEqual(self.dest.stat().st_mtime_ns, before_dest.st_mtime_ns)
+        self.assertEqual(self.dest.stat().st_ctime_ns, before_dest.st_ctime_ns)
+
+    def test_project_id_is_rejected_instead_of_lost(self):
+        import array
+        import fcntl
+        from tests.move_fixtures import make_tree
+        with tempfile.TemporaryDirectory(dir=os.environ['MOVE_CROSS_ROOT']) as t:
+            self.source = Path(t) / 'source'
+            make_tree(self.source)
+            victim = self.source / 'nested/b.jpg'
+            fd = os.open(victim, os.O_RDONLY)
+            try:
+                project = array.array('I', [0] * 7)
+                fcntl.ioctl(fd, 0x801c581f, project, True)
+                project[3] = 123
+                fcntl.ioctl(fd, 0x401c5820, project, True)
+            finally:
+                os.close(fd)
+            code, records = self.run_move()
+            self.assertEqual(code, 1, records)
+            self.assertIn('unsupported_project_metadata', str(records))
+            self.assertTrue(victim.exists())
+            self.assertFalse(self.dest.exists())

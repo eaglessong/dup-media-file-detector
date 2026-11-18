@@ -45,10 +45,12 @@ class SourceFailure(OSError):
 
 
 class Scan:
-    def __init__(self, root, extensions=DEFAULT_EXTENSIONS, scratch_dir=None):
+    def __init__(self, root, extensions=DEFAULT_EXTENSIONS, scratch_dir=None, pin_sqlite_temp=False):
         self.root = root
         self.extensions = extensions
         self.scratch_dir = scratch_dir
+        self.pin_sqlite_temp = pin_sqlite_temp
+        self.previous_sqlite_temp = None
 
     def __enter__(self):
         self.root_fd = open_root(self.root)
@@ -60,6 +62,13 @@ class Scan:
                 raise ValueError('scratch directory is inside selected root')
             self.temp = tempfile.TemporaryDirectory(prefix='dup-media-', dir=scratch)
             self.db = sqlite3.connect(os.path.join(self.temp.name, 'index.sqlite'))
+            if self.pin_sqlite_temp:
+                previous = self.db.execute('PRAGMA temp_store_directory').fetchone()
+                self.previous_sqlite_temp = previous[0] if previous else ''
+                quoted = self.temp.name.replace("'", "''")
+                self.db.execute("PRAGMA temp_store_directory='" + quoted + "'")
+                if self.db.execute('PRAGMA temp_store_directory').fetchone() != (self.temp.name,):
+                    raise ValueError('SQLite temp directory cannot be pinned')
             self.db.executescript('''
                 PRAGMA cache_size=-2048;
                 PRAGMA temp_store=FILE;
@@ -75,15 +84,27 @@ class Scan:
             ''')
             return self
         except BaseException:
+            if hasattr(self, 'db'):
+                self._close_index()
             os.close(self.root_fd)
             if hasattr(self, 'temp'):
                 self.temp.cleanup()
             raise
 
+    def _close_index(self):
+        try:
+            if self.previous_sqlite_temp is not None:
+                quoted = self.previous_sqlite_temp.replace("'", "''")
+                self.db.execute("PRAGMA temp_store_directory='" + quoted + "'")
+        finally:
+            self.db.close()
+
     def __exit__(self, *args):
-        self.db.close()
-        self.temp.cleanup()
-        os.close(self.root_fd)
+        try:
+            self._close_index()
+        finally:
+            self.temp.cleanup()
+            os.close(self.root_fd)
 
     def error(self, path, code):
         self.db.execute('INSERT INTO errors VALUES (?,?)', (path.encode('utf-8', 'backslashreplace').decode('utf-8'), code))

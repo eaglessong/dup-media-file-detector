@@ -309,7 +309,7 @@ class Relocation:
         moved = byte_count = count = errors = 0
         current = '.'
         journal = None
-        with Scan(self.source.path, extensions, scratch_dir=self.scratch) as scan:
+        with Scan(self.source.path, extensions, scratch_dir=self.scratch, pin_sqlite_temp=True) as scan:
             pinned = self.source.open()
             try:
                 if identity(pinned) != identity(scan.root_fd):

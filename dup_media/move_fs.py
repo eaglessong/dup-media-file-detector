@@ -191,6 +191,12 @@ def metadata(fd):
         fcntl.ioctl(fd, 0x80086601, flags, True)  # FS_IOC_GETFLAGS
         if flags[0] & ~0x80000:  # EXTENTS is storage layout, not copied metadata.
             raise MoveError('unsupported_inode_flags')
+    project = array.array('I', [0] * 7)  # struct fsxattr, FS_IOC_FSGETXATTR
+    fcntl.ioctl(fd, 0x801c581f, project, True)
+    # nextents is storage allocation, not transferred metadata. Reject unsupported
+    # project IDs, xflags and extent-size policy rather than silently discarding them.
+    if project[0] or project[1] or project[3] or project[4]:
+        raise MoveError('unsupported_project_metadata')
     s = os.fstat(fd)
     if not stat.S_ISREG(s.st_mode) or s.st_mode & (stat.S_ISUID | stat.S_ISGID | stat.S_ISVTX):
         raise MoveError('unsupported_file_mode')

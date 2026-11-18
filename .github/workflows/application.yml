@@ -33,7 +33,7 @@ jobs:
           cross_root="$RUNNER_TEMP/dup-media-cross"
           mkdir -p "$cross_root"
           truncate -s 128M "$RUNNER_TEMP/dup-media-cross.img"
-          mkfs.ext4 -q "$RUNNER_TEMP/dup-media-cross.img"
+          mkfs.ext4 -q -O project "$RUNNER_TEMP/dup-media-cross.img"
           sudo mount -o loop "$RUNNER_TEMP/dup-media-cross.img" "$cross_root"
           trap 'sudo umount "$cross_root"' EXIT
           sudo env REQUIRE_MOVE_TESTS=1 MOVE_CROSS_ROOT="$cross_root" "$python_path" -m unittest discover -s tests/integration -p 'test_relocate*.py' -v
