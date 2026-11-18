@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature": "macos-relocation",
   "kind": "application",
-  "phase": "temper",
+  "phase": "complete",
   "design": "docs/design/macos-relocation.md",
   "blockers": [],
   "verification": [
@@ -39,21 +39,31 @@
     {
       "scope": "integration",
       "outcome": "passed",
-      "command": "python3 -m unittest discover -s tests/integration -v (local;33 explicit skips)",
+      "command": "python3 -m unittest discover -s tests/integration -v",
       "exit_code": 0
     },
     {
       "scope": "e2e",
       "outcome": "passed",
-      "command": "python3 -m unittest discover -s tests/e2e -v (local;9 explicit skips)",
+      "command": "python3 -m unittest discover -s tests/e2e -v",
+      "exit_code": 0
+    },
+    {
+      "scope": "integration",
+      "outcome": "passed",
+      "command": "GitHub Actions44251504515 at816e341: Linux31 + native macOS34 integration per Python3.11/3.13",
+      "exit_code": 0
+    },
+    {
+      "scope": "e2e",
+      "outcome": "passed",
+      "command": "GitHub Actions44251504515 at816e341: Linux8 + native macOS10 E2E per Python3.11/3.13",
       "exit_code": 0
     }
   ],
   "review": {
-    "mode": "pending",
+    "mode": "independent",
     "evidence": "work-items/macos-relocation/evidence.md",
-    "unresolved_blocking_findings": [
-      "PR8 F1: static directory-permission preflight"
-    ]
+    "unresolved_blocking_findings": []
   }
 }

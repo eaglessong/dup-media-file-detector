@@ -166,6 +166,7 @@ def permission_tree(case):
             elif case == 'sticky_foreign':
                 # Privileged fixture preparation ONLY. Application always ordinary user.
                 mode(late, 0o1777)
+                victim.chmod(0o644)  # Keep the foreign-owned file readable under umask077.
                 try:
                     result = subprocess.run(['sudo', '-n', 'chown', '0:0', str(victim), str(late)],
                                             capture_output=True, text=True)

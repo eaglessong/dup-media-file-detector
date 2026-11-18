@@ -237,7 +237,7 @@ python3 -m dup_media --move-duplicates /absolute/source --destination /absolute/
 The `macos-data-only` policy preserves exact main-stream bytes and rejects resource
 forks on any duplicate-group participant. Permissions, ownership, timestamps, ACLs,
 Finder tags and other xattrs are **not preserved**. New files are created mode0600;
-inherited ACLs may apply. Flagged files are rejected. Scan-only mode stays read-only.
+creation parents with inheritable ACLs are rejected as described below. Flagged files are rejected. Scan-only mode stays read-only.
 Use canonical paths without symlink ancestors; `/private/tmp` rather than `/tmp`.
 JSONL header identifies the metadata policy. Linux retains strict metadata requirements.
 Keep exclusive control of source/destination/journal and their ancestors throughout execution.

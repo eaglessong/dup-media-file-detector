@@ -94,3 +94,33 @@ execution; initial optional sudo setup raised sandbox OSError, now explicitly sk
 locally but fails required CI. No failure hidden as a pass. Existing modes/ACL cases,
 whole-base snapshots and allowed ACL/sticky controls pass after correction. Native
 foreign-owned sticky and cross-volume regression remain mandatory actual CI gates.
+
+
+Follow-up CI at816e341: all five checks SUCCESS, application run
+https://github.com/eaglessong/dup-media-file-detector/actions/runs/44251504515 and
+framework run https://github.com/eaglessong/dup-media-file-detector/actions/runs/44251504474.
+Downloaded logs confirm native34integration and10native E2E methods per Python3.11/3.13,
+including required root-owned sticky fixture (privileged setup only, application under
+ordinary user), real cross-volume and subordinate-mount cases. Full macOS E2E28 includes
+7 explicit Linux-only skips;21pass, including all10native relocation cases. Linux
+privileged31integration+8E2E still pass per version. No missing native-case prerequisite.
+
+ASSAY: separate architecture/deep-read/implementation/scale and test-impact/rules/
+operations/security agents report no blocking defect; all6 new methods HONEST.
+Advisory fixture readability clarified by chmod0644 before root ownership; inheritedACL
+README wording corrected. New fixtures are original bytes only. Final challenger completed with no blocking findings.
+Arch stress hypothesis umask0100 causing later partial move was probed through shippedCLI:
+exit2 before destination/journal creation, victim retained, because fresh SQLite scratch
+is needed before any transfer. Specific hypothesis refuted, not blanket umask support.
+Raw public Apple-source capture remains ignored; no external source/media copied into Git.
+
+
+Follow-up ASSAY complete: separate final challenger confirms F1 resolved and no new
+blocking defect; all6 added methods HONEST. Synthesis retained at
+.agent-local/reviews/pr8-permission-followup-20261118.md. Current fixture refinement
+(readable0644 before root ownership) and README clarity were reviewed; scoped6 local
+methods rerun4pass/2explicit privileged-setup skips (4.790s). No app source changed
+since the green816e341 run. Final artifact/test-only head will be CI-verified again.
+Original F1 disposition FIXED, no outstanding review findings. Feedback refresh contains
+only review5951648652, no inline/conversation comments. Feature status complete means
+review-ready, not merged; no real media operation or merge performed.

@@ -256,3 +256,10 @@ work item extending PR8. Earlier Linux evidence remains historical at its cited 
 PR8 F1 follow-up uses scoped FULL forge instruments to fix static effective permissions;
 see work-items/macos-relocation/evidence.md for exact new commands/skips and ADR-005.
 Historical full-source evidence above remains pinned; follow-up verification pending CI.
+
+
+Follow-up F1 FIXED by effective source-delete/destination-create/journal-create
+preflight and native ordinary-user regressions. All5 checks green at816e341;
+macOS34integration+10nativeE2E and Linux31integration+8E2E per Python3.11/3.13.
+Separate ASSAY reviewers/challenger report no blocker; see macOS evidence and ADR005.
+Final fixture/evidence head will be rechecked. No merge or real-library move performed.
