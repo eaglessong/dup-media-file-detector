@@ -10,7 +10,7 @@ from contextlib import contextmanager
 
 from .scan import Scan, DIR_FLAGS, CHUNK, signature
 from .move_fs import (Location, MoveError, absolute, overlap, runtime, filesystem,
-                      mounts, attrs, metadata, apply_metadata, identity)
+                      mounts, scratch_outside, attrs, metadata, apply_metadata, identity)
 from .move_journal import Journal
 
 
@@ -301,6 +301,7 @@ class Relocation:
     def run(self, extensions, output, dry_run):
         # Invalid overlapping roots have already failed before this capability/scan work.
         runtime()
+        scratch_outside(self.scratch, [self.source, self.destination])
         mounts([self.source, self.destination])
         if self.journal_path:
             mounts([self.source, self.destination, Location(self.journal_path)])

@@ -134,26 +134,35 @@ def mount_records():
             yield fields[2], decode(fields[3]), decode(fields[4])
 
 
+def mount_location(location, records):
+    candidates = [(len(point), device, root, point) for device, root, point in records
+                  if os.path.commonpath([point, location.path]) == point]
+    if not candidates:
+        raise MoveError('mount_probe_failed')
+    _, device, root, point = max(candidates)
+    return device, os.path.normpath(os.path.join(root, os.path.relpath(location.path, point)))
+
+
 def mounts(locations):
     """Reject subordinate mountpoints and overlapping bind-mount spellings."""
     records = list(mount_records())  # Bounded by mount count, not media file count.
-    resolved = []
     for location in locations:
-        candidates = []
-        for device, root, point in records:
-            if point.startswith(location.path.rstrip('/') + '/'):
-                raise MoveError('nested_mount_unsupported')
-            if os.path.commonpath([point, location.path]) == point:
-                candidates.append((len(point), device, root, point))
-        if not candidates:
-            raise MoveError('mount_probe_failed')
-        _, device, root, point = max(candidates)
-        suffix = os.path.relpath(location.path, point)
-        resolved.append((device, os.path.normpath(os.path.join(root, suffix))))
+        if any(point.startswith(location.path.rstrip('/') + '/') for _, _, point in records):
+            raise MoveError('nested_mount_unsupported')
+    resolved = [mount_location(location, records) for location in locations]
     for i, (device, path) in enumerate(resolved):
         for other_device, other_path in resolved[i + 1:]:
             if device == other_device and os.path.commonpath([path, other_path]) in (path, other_path):
                 raise ValueError('overlapping mount roots')
+
+
+def scratch_outside(scratch, trees):
+    records = list(mount_records())
+    scratch_device, scratch_path = mount_location(Location(scratch), records)
+    for tree in trees:
+        device, path = mount_location(tree, records)
+        if device == scratch_device and os.path.commonpath([path, scratch_path]) == path:
+            raise ValueError('scratch aliases selected tree')
 
 
 def attrs(fd):

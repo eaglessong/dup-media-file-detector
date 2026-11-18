@@ -398,3 +398,23 @@ class TransferIntegration(MoveFixture):
         self.assertFalse((self.dest / 'nested/b.jpg').exists())
         with sqlite3.connect(self.journal / 'journal.sqlite') as db:
             self.assertEqual(db.execute('SELECT state,error FROM items').fetchone(), ('copying', 'io_failure'))
+
+    def test_bind_mounted_scratch_alias_cannot_modify_either_tree(self):
+        alias = self.base / 'scratch-alias'
+        alias.mkdir()
+        for owner in [self.source, self.dest]:
+            owner.mkdir(exist_ok=True)
+            holding = owner / 'holding'
+            holding.mkdir()
+            subprocess.run(['mount', '--bind', str(holding), str(alias)], check=True)
+            try:
+                before = holding.stat()
+                with patch.dict(os.environ, {'TMPDIR': str(alias)}):
+                    with self.assertRaises(ValueError):
+                        self.run_move(dry=True)
+                self.assertEqual(list(holding.iterdir()), [])
+                self.assertEqual(holding.stat().st_mtime_ns, before.st_mtime_ns)
+                self.assertEqual(holding.stat().st_ctime_ns, before.st_ctime_ns)
+                self.assertFalse(self.journal.exists())
+            finally:
+                subprocess.run(['umount', str(alias)], check=True)
