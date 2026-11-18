@@ -5,8 +5,7 @@
 ## Problem and current state
 
 USER requests restoring files relocated by an earlier move to their original locations,
-using the relocated root plus an explicit revert flag, with dry-run. This delivery is
-artifacts only. [Brief](../../work-items/revert-move/brief.md),
+using the relocated root plus an explicit revert flag, with dry-run. Implementation follows this accepted design. [Brief](../../work-items/revert-move/brief.md),
 [ADR-006](../decisions/006-revert-move.md) and
 [evidence](../../work-items/revert-move/evidence.md) record scope and attribution.
 
@@ -297,7 +296,7 @@ NAS/hardware durability measurement is claimed.
 
 ## Verification and acceptance matrix
 
-All rows are **planned**, not passing tests. Generate original literal bytes in disposable
+The table is the design-time test plan, not a claim that every listed case has a direct test. Executed coverage and remaining limits are recorded in the work-item evidence. Generate original literal bytes in disposable
 trees; media suffixes exercise selection/history, not decoding. New writer/reader must
 round-trip actual generated manifests. Legacy fixture provenance is the inspected old
 writer/schema, never invented original-root fields. No private collection, credentials
@@ -328,7 +327,7 @@ Implementation checks: compileall/help/application CLI contracts; all affected f
 integration and shipped CLI suites; forge artifact check; framework tests for tooling
 changes. Scope affected reruns after adversarial code-review/test-realism audits. Native
 hosted runs on Python3.11/3.13 close platform gaps only when evidenced for that commit.
-Plan10k-entry revert dry-run wall/index/RSS and16MiB distinct-device transfer measurements;
+Measure10k-entry revert dry-run wall/index/RSS and16MiB transfer performance; label the measured device topology explicitly. Distinct-device behavior requires separate native tests;
 no arbitrary latency target or borrowed forward-move timings.
 
 ## Delivery, rollout and decision records

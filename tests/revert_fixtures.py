@@ -277,6 +277,18 @@ class RevertCases:
 
 
 class RevertFaultCases:
+    def test_published_restoration_corruption_retains_archive_and_blocks_retry(self):
+        self.forward()
+        def corrupt(stage, path):
+            if stage == 'published':
+                (self.source / path).write_bytes(b'z' * 100)
+        with patch('dup_media.revert.checkpoint', corrupt):
+            code, rows = self.revert()
+        self.assertEqual(code, 1, rows)
+        self.assertEqual((self.dest / 'nested/b.jpg').read_bytes(), b'a' * 100)
+        self.assertEqual((self.source / 'nested/b.jpg').read_bytes(), b'z' * 100)
+        self.blocked('revert_incomplete')
+
     def test_forward_manifest_finalization_failure_is_not_revertible(self):
         with patch('dup_media.relocate.Manifest.complete', side_effect=OSError('synthetic completion failure')):
             code, rows = self.run_move()

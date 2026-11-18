@@ -153,7 +153,7 @@ suite results/logs distinguish all explicit platform/setup skips.
 Scale: local macOS/Python3.13 synthetic registered10k-entry revert dry-run5.119s,
 index4,186,112bytes, manifest2,895,872bytes, process peak37,360KiB. Dataset: one real
 forward-writer seed plus9,999synthetic registered16-byte archive files, not10kactual
-forward moves. Actual16MiB forward/reverse round-trip revert0.398s, process high-water
+forward moves. Actual16MiB same-device forward/reverse round-trip revert0.398s, process high-water
 42,912KiB (not incremental RSS). scripts/probe_revert.py reproduces both in disposable
 trees. No NAS/production/power-loss claim. Native source-locator refinement uses Darwin
 F_GETPATH_NOFIRMLINK; affected round-trip tests will rerun.
@@ -169,3 +169,52 @@ Logs and exact command receipts under .agent-local/forge-revert-move/. Existing 
 foreign-owner sticky fixture remains a hosted-CI prerequisite; Linux native checks not
 run on this host. No private media operation. Source checks are sufficient to start
 ASSAY; final STAMP requires actual exact-head hosted CI and finding resolution.
+
+
+### ASSAY resolution and hosted verification
+
+Reviewed implementation dbb60153459cb66e846497502545b3fdecf39591 against
+4af6c1f3069efd953c6bf8e5c5551efa8c801bea in Full mode. Three delegated leaf passes
+covered architecture/deep-read/implementation challenge/scale, test impact/realism,
+and rules/operations/diagnostics/security. Implementation-author overlap disclosed;
+multiple agents do not constitute independent human approval. Test audit denominator:
+23 added/modified functions, all HONEST for their narrow assertions, no LYING/DEAD.
+The material R7 coverage gap (published restoration corruption before archive unlink)
+was resolved with a real-filesystem checkpoint test: same-size corruption must fail,
+retain exact archive bytes, and refuse automatic retry. Added test passes in local
+native macOS integration (21 discovered, one optional second-volume skip).
+
+GitHub PR #9 created draft and attached. Implementation-head CI: all five checks pass,
+Application run44276019244 and Framework run44276018875. Read full application log:
+Linux3.11/3.13 required privileged suites each32forward integration+9forward E2E+
+20revert integration+15revert E2E, zero skips; macOS3.11/3.13 required APFS integration
+54tests zero skips, full E2E59tests with23explicit Linux-only skips. Thus hosted CI
+closed the local foreign-owner sticky setup and Linux environment gaps. Ordinary
+cross-platform suites also pass with their explicit unsupported-platform skips.
+Source logs retained in ignored .agent-local/forge-revert-move/ci-implementation.log.
+PR conversation/reviews/inline comments were empty on observation. Final test/docs
+revision still requires exact-head CI before delivery.
+
+Coverage limits: the broader design-time matrix is a plan. Direct revert tests do not
+individually inject every metadata/journal/unlink failure, full-disk condition, deep
+namespace, broken pipe, resource-fork/ACL/sticky/inheritance combination. Shared native
+policy implementations and existing forward tests add confidence but are not claimed
+as direct revert cases. Fresh final-copy proof is now specifically exercised; hardware
+power loss, production NAS scale and hostile concurrent owners remain unproved.
+The16MiB0.398s benchmark is same-device; separate actual second-device tests establish
+cross-volume correctness, not a cross-volume throughput measurement.
+
+Final separate Devil's Advocate returned NO BLOCKING FINDINGS after inspecting new proof
+test, previous-run/receipt gaps, alias containment and resource bounds. Synthesized
+report: .agent-local/reviews/revert-move-final.md (ignored local review artifact).
+One material test gap resolved; no retained source defects. Review mode independent
+means delegated agent seats, with implementation-author overlap and no human approval.
+Unrun stress hypothesis: injected receipt commit failure after archive unlink; source
+ordering retains restored/staged copies and STARTED/manual-only receipt.
+
+Affected rerun after F1: actual disposable second APFS device, required native revert
+integration21tests and shipped CLI E2E15tests, zero skips, both exit0. Command recipe
+python3 .agent-local/forge-revert-move/native_cross.py; underlying commands are
+python3 -m unittest discover -s tests/integration -p 'test_macos_revert*' -v and the
+same with tests/e2e, REQUIRE_MAC_MOVE_TESTS=1 and MOVE_CROSS_ROOT on distinct device.
+Image detached/deleted. forge check and git diff --check exit0 after artifact updates.
