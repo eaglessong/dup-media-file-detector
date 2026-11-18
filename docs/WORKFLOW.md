@@ -239,3 +239,9 @@ Do not repeat reconnaissance without a reason. Design/brief edits do not automat
 launch an agent. The validator checks artifacts, mirrors, declared verification and
 prompt completeness; it cannot prove command execution, meaningful assertions, genuine
 independence or full workflow compliance. Those require execution evidence and review.
+
+## Optional published review with patrol
+
+Use `/patrol PR_NUMBER --dry-run` to prepare a report or `/patrol PR_NUMBER` when review
+publication is explicitly wanted. It wraps code-review without changing that skill's
+read-only boundary. It neither fixes nor merges. See [protocol](patrol/sweep.md).
