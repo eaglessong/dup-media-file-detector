@@ -1,6 +1,6 @@
 # Revert move
 
-**Status:** Implemented on feature branch — verification/review/PR pending
+**Status:** Implemented and verified — PR #9, unmerged
 
 ## Goal and USER requirements
 
@@ -19,14 +19,14 @@ Accepted SURVEY:
 
 Verbatim answers and attributed mechanisms: [ADR-006](../../docs/decisions/006-revert-move.md).
 
-## Example and proposed interface
+## Example and interface
 
 A prior move put `ORIGINAL/nested/b.jpg` at `ARCHIVE/nested/b.jpg`. Revert validates that
 `ORIGINAL/nested` already exists, that b.jpg is absent there and that archive bytes and
 provenance are valid. It copies/verifies/publishes the restored file before removing
 its matching archive name. Other original files and unregistered archive files remain.
 
-Proposed, **not shipped**:
+Implemented CLI:
 
 ```sh
 python3 -m dup_media --revert-move ARCHIVE --dry-run
@@ -68,5 +68,5 @@ work item depends on future forward-move manifest writing; legacy mode stays exp
 USER `/forge implement revert-move` now authorizes implementation/tests/PR delivery,
 not merge or personal-file operations. Earlier design-only scope above is historical.
 Current native implementations and evidence are in recovery.py/revert.py and evidence.md;
-future forward moves write self-contained records. Do not treat pending CI/review as
-completion. Existing untracked move.json remains unread/unmodified.
+new forward moves write self-contained records. Verification and review receipts
+are recorded in evidence.md; PR #9 is the unmerged delivery. Existing untracked move.json remains unread/unmodified.

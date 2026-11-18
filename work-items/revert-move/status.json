@@ -2,7 +2,7 @@
   "schema_version": 1,
   "feature": "revert-move",
   "kind": "application",
-  "phase": "stamp",
+  "phase": "complete",
   "design": "docs/design/revert-move.md",
   "blockers": [],
   "verification": [

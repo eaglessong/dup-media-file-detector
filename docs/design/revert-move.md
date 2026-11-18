@@ -1,6 +1,6 @@
 # Revert move
 
-**Status:** Implementation in verification — no merge authorized
+**Status:** Implemented and verified — PR #9, no merge authorized
 
 ## Problem and current state
 
@@ -75,7 +75,7 @@ Design-only scope grants no application implementation, actual file operations o
 
 ## CLI and visible behavior
 
-Implemented feature-branch interface (delivery/CI pending):
+Implemented interface (PR #9):
 
 ```sh
 # Future manifest-backed operation: only location input is the archive root.
@@ -305,7 +305,7 @@ ext4/APFS and second-volume CI recipes exist; implementation must actually execu
 
 | Requirement | Real-filesystem integration assertions | Actual entry-point E2E assertions | Demo outcome |
 | --- | --- | --- | --- |
-| R1 | Actual forward move then revert; exact original paths/bytes restored; keeper may be absent/changed; unique/unregistered files untouched | Run proposed `-m dup_media --revert-move`; actual subprocess, no duplicate-regroup shortcut | nested/b.jpg returns to original location |
+| R1 | Actual forward move then revert; exact original paths/bytes restored; keeper may be absent/changed; unique/unregistered files untouched | Run `-m dup_media --revert-move`; actual subprocess, no duplicate-regroup shortcut | nested/b.jpg returns to original location |
 | R2 | Future writer manifest round trip; explicit legacy roots/journal; multiple IDs, missing/corrupt/version/root mismatch; no silent fallback | Root-only success for one new operation; legacy pair required; ambiguity requires ID | no original path entry for new manifest |
 | R3 | Matching nested/empty archive directories; extra original directories allowed; missing/mismatched/symlink late directory aborts with whole-namespace equality | Same cases in dry-run and execution, no restore-directory creation | mismatch restores zero files |
 | R4 | Identical/different/file/directory/symlink target, including later path; no overwrite, no journal mutation | Exact nonzero exit/error/moved=0 and full namespace preservation | existing target blocks plan |

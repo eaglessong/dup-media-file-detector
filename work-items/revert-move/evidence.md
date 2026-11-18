@@ -218,3 +218,20 @@ python3 .agent-local/forge-revert-move/native_cross.py; underlying commands are
 python3 -m unittest discover -s tests/integration -p 'test_macos_revert*' -v and the
 same with tests/e2e, REQUIRE_MAC_MOVE_TESTS=1 and MOVE_CROSS_ROOT on distinct device.
 Image detached/deleted. forge check and git diff --check exit0 after artifact updates.
+
+### STAMP delivery
+
+PR: https://github.com/eaglessong/dup-media-file-detector/pull/9 (unmerged).
+Post-review revision acba5081f54114a48db6d99aab1df3dcbd372372: hosted application run
+44276665897 and framework44276665781 passed required checks on Linux/macOS Python3.11/3.13,
+including the new corruption test and native second-volume suites. Final artifact-only
+completion commit will also be checked before handoff; no application changes after review.
+Conversation/reviews/inline comments all read with pagination and empty; transient PR-body
+update connection failure retried successfully. No review finding remains unresolved.
+
+Demo: python3 -m dup_media --revert-move ARCHIVE --dry-run, then (after stopping other
+writers) python3 -m dup_media --revert-move ARCHIVE --exclusive-access. Future completed
+moves discover their original root; old archives add --original-root ORIGINAL and
+--move-journal OLD_OPERATION_DIRECTORY. Missing matching directories or any target
+collision abort before restore mutation. Incomplete operations remain manual recovery.
+No merge, personal-media use or read/modification of user move.json performed.
